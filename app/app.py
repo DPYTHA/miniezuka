@@ -25,9 +25,11 @@ STATIC_DIR = os.path.join(APP_DIR, "static")
 
 app = Flask(__name__, static_folder=STATIC_DIR)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "change-me-please")
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:Pytha1991@localhost:5432/miniezuka"
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")  # Pas de valeur par défaut en prod
+# Configuration base de données
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 db = SQLAlchemy(app)
 
 # -------------------- Models --------------------
@@ -1516,9 +1518,12 @@ def force_telegram_setup():
 
 class TelegramNotifier:
     def __init__(self):
-        # VOTRE TOKEN - À NE PAS PARTAGER !
-        self.bot_token = "8382796514:AAFP03lQVDrh2EAdOpPpREYnaZT-VMEKSTU"
-        self.chat_id = None  # Nous allons le récupérer automatiquement
+        # Récupérer le token depuis les variables d'environnement
+        self.bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
+        if not self.bot_token:
+            raise ValueError("❌ TELEGRAM_BOT_TOKEN non configuré dans les variables d'environnement")
+        
+        self.chat_id = None
         self.setup_bot()
         
     def setup_bot(self):  # ✅ CORRIGER L'INDENTATION - même niveau que __init__
