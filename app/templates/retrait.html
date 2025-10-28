@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retrait d'argent</title>
+<style>
+/* Votre CSS reste inchangé */
+body {background: linear-gradient(135deg, #667eea 0%,  #0c2137 100%); font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;}
+.container {max-width:400px; margin:50px auto;}
+.header {text-align:center; color:white; margin-bottom:30px;}
+.header h1 {font-size:28px; font-weight:600;}
+.balance-card {background: rgba(255,255,255,0.2); border-radius:15px; padding:20px; text-align:center; color:white; margin-bottom:20px; backdrop-filter: blur(10px);}
+.balance-label {font-size:14px; opacity:0.9;}
+.balance-amount {font-size:32px; font-weight:700;}
+.card {background:white; border-radius:20px; padding:25px; margin-bottom:20px; box-shadow:0 10px 30px rgba(0,0,0,0.2);}
+.form-group {margin-bottom:20px;}
+.form-group label {display:block; margin-bottom:8px; font-weight:500; color:#333;}
+.form-control {width:100%; padding:15px; border:2px solid #e1e1e1; border-radius:12px; font-size:16px;}
+.form-control:focus {outline:none; border-color:#667eea;}
+.amount-display {background:#f8f9fa; padding:15px; border-radius:12px; text-align:center; margin-top:10px; border:2px solid #e9ecef;}
+.amount-label {font-size:14px; color:#666; margin-bottom:5px;}
+.amount-value {font-size:20px; font-weight:600; color:#28a745;}
+.withdraw-button {background:#0c2137; color:white; border:none; padding:18px; border-radius:12px; font-size:18px; font-weight:600; width:100%; cursor:pointer; margin-top:20px;}
+.withdraw-button:hover {background:#5a6fd8;}
+.withdraw-button:disabled {background:#ccc; cursor:not-allowed;}
+.modal {display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(5px); z-index:1000; align-items:center; justify-content:center;}
+.modal-content {background:white; border-radius:20px; padding:30px; max-width:350px; width:90%; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.3);}
+.modal-icon {font-size:48px; margin-bottom:20px; color:#28a745;}
+.modal-title {font-size:24px; font-weight:600; margin-bottom:15px; color:#333;}
+.modal-message {font-size:16px; margin-bottom:15px;}
+.modal-amount {font-size:28px; font-weight:700; color:#28a745; margin:15px 0;}
+.modal-contact {background:#f8f9fa; padding:15px; border-radius:10px; margin:15px 0; text-align:left;}
+.modal-contact-title {font-weight:600; color:#333; margin-bottom:5px;}
+.modal-contact-info {color:#666;}
+.modal-button {background:#667eea; color:white; border:none; padding:15px 30px; border-radius:12px; font-size:16px; font-weight:600; cursor:pointer;}
+.modal-button:hover {background:#5a6fd8;}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="header"><h1>Retrait d'argent</h1></div>
+    <div class="balance-card">
+        <div class="balance-label">Solde disponible</div>
+        <div class="balance-amount" id="currentBalance">Chargement...</div>
+    </div>
+    <div class="card">
+        <div class="form-group">
+            <label for="user_phone">Votre numéro</label>
+            <input type="tel" id="user_phone" class="form-control" placeholder="Ex: +225 07 08 09 10 11" maxlength="15" required readonly>
+        </div>
+
+        <div class="form-group">
+            <label for="amount">Somme à retirer</label>
+            <input type="number" id="amount" class="form-control" placeholder="0.00" min="0" step="0.01" required>
+        </div>
+
+        <div class="form-group">
+            <label for="withdraw_method">Mode de retrait</label>
+            <select id="withdraw_method" class="form-control" required>
+                <option value="">Sélectionnez un mode</option>
+            </select>
+        </div>
+
+        <div class="amount-display">
+            <div class="amount-label">Montant après frais</div>
+            <div class="amount-value" id="netAmount">0.00 </div>
+        </div>
+        <button class="withdraw-button" id="withdrawButton">Retirer</button>
+    </div>
+</div>
+
+<div class="modal" id="confirmationModal">
+    <div class="modal-content">
+        <div class="modal-icon">💸</div>
+        <div class="modal-title">Retrait demandé</div>
+        <div class="modal-message">Veuillez verifier la confirmation dans votre historique :</div>
+        <div class="modal-amount" id="modalAmount">0.00</div>
+        <div class="modal-contact">
+            <div class="modal-contact-title" id="modalContactTitle"></div>
+            <div class="modal-contact-info" id="modalContactInfo"></div>
+        </div>
+        <button class="modal-button" onclick="closeModal()">OK</button>
+    </div>
+</div>
+
+<script>
+const withdrawMethodsByCountry = {
+    "Côte d'Ivoire": [{method:"Orange Money", number:"+225 0757123619", name:"OLIVIA"}, {method:"Wave", number:"+225 0757123619", name:"OLIVIA"}],
+    "Sénégal": [{method:"Orange Money", number:"+221 0777123456", name:"OLIVIA"}],
+    "Burkina Faso": [{method:"Orange Money", number:"+226 0701010101", name:"OLIVIA"}],
+    "Mali": [{method:"Orange Money", number:"+223 0606060606", name:"OLIVIA"}],
+    "Niger": [{method:"Nita", number:"+227 012345678", name:"OLIVIA"}],
+    "Togo": [{method:"Moov Money", number:"+228 0101010101", name:"OLIVIA"}],
+    "Bénin": [{method:"Moov Money", number:"+229 0101010101", name:"OLIVIA"}],
+    "Russie": [{method:"Sberbank", number:"+7 9879040719", name:"A.Муа Оливье"}, {method:"Tinkoff", number:"+7 9879040719", name:"A.Муа Оливье"}]
+};
+
+let userCountry = 'Côte d\'Ivoire';
+let userCurrency = 'XOF';
+
+async function loadUserInfo() {
+    try {
+        const res = await fetch('/api/user_info', {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        if (!res.ok) {
+            throw new Error(`Erreur HTTP: ${res.status}`);
+        }
+
+        const data = await res.json();
+        
+        if (data.ok) {
+            document.getElementById('currentBalance').textContent = data.user.balance.toFixed(2) + ' ' + data.user.currency;
+            document.getElementById('user_phone').value = data.user.phone || '';
+            userCurrency = data.user.currency;
+            userCountry = data.user.country || 'Côte d\'Ivoire';
+            updateWithdrawMethods();
+        } else {
+            throw new Error(data.error || 'Erreur inconnue');
+        }
+
+    } catch (err) {
+        console.error("Erreur lors du chargement des infos utilisateur :", err);
+        document.getElementById('currentBalance').textContent = 'Erreur de chargement';
+        // Rediriger vers la page de login si non authentifié
+        if (err.message.includes('401')) {
+            window.location.href = '/login';
+        }
+    }
+}
+
+function updateWithdrawMethods() {
+    const select = document.getElementById('withdraw_method');
+    select.innerHTML = '<option value="">Sélectionnez un mode</option>';
+    
+    if(userCountry && withdrawMethodsByCountry[userCountry]){
+        withdrawMethodsByCountry[userCountry].forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.method;
+            option.textContent = item.method;
+            select.appendChild(option);
+        });
+    }
+}
+
+function updateNetAmount() {
+    const amount = parseFloat(document.getElementById('amount').value) || 0;
+    const feePercent = 1.5; // frais de retrait
+    const net = amount - (amount * feePercent / 100);
+    document.getElementById('netAmount').textContent = net.toFixed(2) + ' ' + userCurrency;
+}
+
+async function initiateWithdraw() {
+    const phone = document.getElementById('user_phone').value;
+    const amount = parseFloat(document.getElementById('amount').value);
+    const method = document.getElementById('withdraw_method').value;
+
+    if(!phone || amount <= 0 || !method){
+        alert('Remplissez tous les champs et sélectionnez un mode');
+        return;
+    }
+
+    const btn = document.getElementById('withdrawButton');
+    btn.disabled = true; 
+    btn.textContent = 'Traitement...';
+
+    try {
+        const res = await fetch('/api/withdraw_request', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            credentials: 'include',
+            body: JSON.stringify({
+                user_phone: phone,
+                amount: amount,
+                withdraw_method: method,
+                country: userCountry,
+                currency: userCurrency
+            })
+        });
+
+        const data = await res.json();
+        
+        if(data.success){
+            document.getElementById('modalAmount').textContent = data.net_amount.toFixed(2) + ' ' + data.currency;
+            document.getElementById('currentBalance').textContent = data.user_balance.toFixed(2) + ' ' + data.currency;
+            
+            const contact = withdrawMethodsByCountry[userCountry].find(c => c.method === method);
+            if(contact){
+                document.getElementById('modalContactTitle').textContent = contact.method;
+                document.getElementById('modalContactInfo').textContent = `${contact.number} (${contact.name})`;
+            }
+            
+            document.getElementById('confirmationModal').style.display = 'flex';
+        } else {
+            alert(data.error || 'Erreur lors du retrait');
+        }
+    } catch(err) { 
+        console.error('Erreur:', err);
+        alert('Erreur de connexion au serveur');
+    } finally { 
+        btn.disabled = false; 
+        btn.textContent = 'Retirer'; 
+    }
+}
+
+function closeModal(){
+    document.getElementById('confirmationModal').style.display = 'none';
+    document.getElementById('amount').value = '';
+    document.getElementById('withdraw_method').value = '';
+    document.getElementById('netAmount').textContent = '0.00 ' + userCurrency;
+}
+
+// Événements
+document.getElementById('amount').addEventListener('input', updateNetAmount);
+document.getElementById('withdrawButton').addEventListener('click', initiateWithdraw);
+
+// Chargement initial
+loadUserInfo();
+</script>
+</body>
+</html>

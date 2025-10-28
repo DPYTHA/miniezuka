@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dépot d'argent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        body {
+           background: linear-gradient(135deg, #667eea 0%,  #0c2137 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .balance-card {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .balance-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        
+        .balance-amount {
+            font-size: 32px;
+            font-weight: 700;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .info-title {
+            font-weight: 600;
+            color: #1976d2;
+            margin-bottom: 8px;
+        }
+        
+        .info-content {
+            color: #333;
+            line-height: 1.5;
+        }
+        
+        .depot-button {
+            background: #0c2137;
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 20px;
+        }
+        
+        .depot-button:hover {
+            background: #218838;
+        }
+        
+        .depot-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 350px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .modal-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #28a745;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .modal-message {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            text-align: left;
+        }
+        
+        .modal-amount {
+            font-size: 28px;
+            font-weight: 700;
+            color: #28a745;
+            margin: 15px 0;
+        }
+        
+        .modal-contact {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            text-align: left;
+        }
+        
+        .modal-contact-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .modal-contact-info {
+            color: #666;
+        }
+        
+        .modal-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+        
+        .modal-button:hover {
+            background: #5a6fd8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Dépot d'argent</h1>
+        </div>
+        
+        <div class="balance-card">
+            <div class="balance-label">Solde disponible</div>
+            <div class="balance-amount" id="currentBalance">0.00 €</div>
+        </div>
+        
+        <div class="card">
+            <div class="form-group">
+                <label for="user_phone">Votre numéro</label>
+                <input type="tel" id="user_phone" class="form-control" placeholder="Ex: +225 07 08 09 10 11" maxlength="15" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="amount">Somme à déposer</label>
+                <input type="number" id="amount" class="form-control" placeholder="0.00" min="0" step="0.01" required>
+            </div>
+            
+            <div class="info-box" id="paymentInfo">
+                <div class="info-title">Mode de depot disponible</div>
+                <div class="info-content" id="paymentMethod"></div>
+            </div>
+            
+            <button class="depot-button" id="depotButton" onclick="initiateDepot()">Déposer</button>
+        </div>
+    </div>
+
+    <!-- Modal de confirmation -->
+    <div class="modal" id="confirmationModal">
+        <div class="modal-content">
+            <div class="modal-icon">💰</div>
+            <div class="modal-title">Instructions de dépôt</div>
+            
+            <div class="modal-message">
+                Pour recharger votre compte, veuillez transférer le montant de :
+            </div>
+            
+            <div class="modal-amount" id="modalAmount">0.00 €</div>
+            
+            <div class="modal-message">
+                via <strong id="modalMethod">Orange Money</strong> au numéro suivant :
+            </div>
+            
+            <div class="modal-contact">
+                <div class="modal-contact-title" id="modalContactTitle">Orange Money / Wave</div>
+                <div class="modal-contact-info" id="modalContactInfo">+225 0757123619 (OLIVIA)</div>
+            </div>
+            
+            <div class="modal-message">
+                Votre dépôt sera crédité après confirmation du transfert.
+            </div>
+            
+            <button class="modal-button" onclick="closeModal()">J'ai compris</button>
+        </div>
+    </div>
+
+   <script>
+  // Mapping pays → méthodes de paiement
+  const paymentMethods = {
+    "Côte d'Ivoire": {
+      methods: ["Orange Money", "Wave"],
+      contacts: [
+        { type: "Orange Money / Wave", number: "+225 0757123619", name: "OLIVIA" }
+      ]
+    },
+    "Sénégal": {
+      methods: ["Orange Money", "Wave"],
+      contacts: [
+        { type: "Orange Money / Wave", number: "+225 0757123619", name: "OLIVIA" }
+      ]
+    },
+    "Burkina Faso": {
+      methods: ["Orange Money"],
+      contacts: [
+        { type: "Orange Money", number: "+225 0757123619", name: "OLIVIA" }
+      ]
+    },
+    "Mali": {
+      methods: ["Orange Money"],
+      contacts: [
+        { type: "Orange Money", number: "+225 0757123619", name: "OLIVIA" }
+      ]
+    },
+    "Niger": {
+      methods: ["Nita"],
+      contacts: [
+        { type: "Nita", number: "+227 012345678", name: "OLIVIA" }
+      ]
+    },
+    "Togo": {
+      methods: ["Moov Money"],
+      contacts: [
+        { type: "Moov Money", number: "+225 0101010101", name: "OLIVIA" }
+      ]
+    },
+    "Bénin": {
+      methods: ["Moov Money"],
+      contacts: [
+        { type: "Moov Money", number: "+225 0101010101", name: "OLIVIA" }
+      ]
+    },
+    "Russie": {
+      methods: ["Sberbank", "Tinkoff"],
+      contacts: [
+        { type: "Sberbank / Tinkoff", number: "+7 9879040719", name: "A.Муа Оливье" }
+      ]
+    }
+  };
+
+  let userCountry = '';
+  let selectedMethod = '';
+  let userCurrency = '';
+
+  // Charger le solde et les infos utilisateur
+  async function loadUserInfo() {
+    try {
+      const response = await fetch('http://127.0.0.1:5000/api/user_info');
+      const data = await response.json();
+
+      // ✅ Ton backend retourne maintenant data.user
+      if (!data.user) {
+        console.error("Utilisateur non connecté");
+        return;
+      }
+
+      const user = data.user;
+
+      document.getElementById('currentBalance').textContent = `${user.balance.toFixed(2)} ${user.currency}`;
+      document.getElementById('user_phone').value = user.phone || '';
+      userCountry = user.country;
+      userCurrency = user.currency;
+
+      // Afficher les méthodes de paiement disponibles
+      updatePaymentMethods();
+    } catch (error) {
+      console.error('Erreur chargement infos:', error);
+    }
+  }
+
+  // Mettre à jour les méthodes de paiement
+  function updatePaymentMethods() {
+    const infoBox = document.getElementById('paymentInfo');
+    const paymentMethodDiv = document.getElementById('paymentMethod');
+
+    if (userCountry && paymentMethods[userCountry]) {
+      const countryMethods = paymentMethods[userCountry];
+      paymentMethodDiv.textContent = countryMethods.methods.join(', ');
+      infoBox.style.display = 'block';
+
+      // Sélectionner la première méthode par défaut
+      selectedMethod = countryMethods.methods[0];
+    } else {
+      infoBox.style.display = 'none';
+      selectedMethod = '';
+    }
+
+    updateDepotButton();
+  }
+
+  // Mettre à jour l'état du bouton de dépôt
+  function updateDepotButton() {
+    const phone = document.getElementById('user_phone').value;
+    const amount = parseFloat(document.getElementById('amount').value) || 0;
+    const depotButton = document.getElementById('depotButton');
+
+    depotButton.disabled = !phone || amount <= 0 || !selectedMethod;
+  }
+
+  // Initier le dépôt
+  async function initiateDepot() {
+    const phone = document.getElementById('user_phone').value;
+    const amount = parseFloat(document.getElementById('amount').value);
+
+    if (!phone || amount <= 0 || !selectedMethod) {
+      alert('Veuillez remplir tous les champs correctement');
+      return;
+    }
+
+    const depotButton = document.getElementById('depotButton');
+    depotButton.disabled = true;
+    depotButton.textContent = 'Traitement...';
+
+    try {
+      const response = await fetch('http://127.0.0.1:5000/api/depot_request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_phone: phone,
+          amount: amount,
+          payment_method: selectedMethod,
+          country: userCountry,
+          currency: userCurrency // ✅ Devise de l’utilisateur
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Afficher le modal avec les instructions
+        showDepotInstructions(amount, selectedMethod, userCountry, userCurrency);
+      } else {
+        alert('Erreur: ' + data.error);
+      }
+    } catch (error) {
+      console.error('Erreur:', error);
+      alert('Erreur lors de la demande de dépôt');
+    } finally {
+      depotButton.disabled = false;
+      depotButton.textContent = 'Déposer';
+    }
+  }
+
+  // Afficher les instructions de dépôt
+  function showDepotInstructions(amount, method, country, currency) {
+    document.getElementById('modalAmount').textContent = `${amount.toFixed(2)} ${currency}`;
+    document.getElementById('modalMethod').textContent = method;
+
+    const countryInfo = paymentMethods[country];
+    if (countryInfo && countryInfo.contacts.length > 0) {
+      const contact = countryInfo.contacts[0];
+      document.getElementById('modalContactTitle').textContent = contact.type;
+      document.getElementById('modalContactInfo').textContent = `${contact.number} (${contact.name})`;
+    }
+
+    document.getElementById('confirmationModal').style.display = 'flex';
+  }
+
+  // Fermer le modal
+  function closeModal() {
+    document.getElementById('confirmationModal').style.display = 'none';
+    document.getElementById('amount').value = '';
+    updateDepotButton();
+  }
+
+  // Événements
+  document.getElementById('user_phone').addEventListener('input', updateDepotButton);
+  document.getElementById('amount').addEventListener('input', updateDepotButton);
+
+  // Charger les infos au démarrage
+  loadUserInfo();
+</script>
+
+</body>
+</html>

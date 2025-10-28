@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion</title>
+  <style>
+    body {
+      background: #f7faff;
+      font-family: "Poppins", sans-serif;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 400px;
+      margin: 80px auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #1e3a8a; /* Bleu profond */
+      margin-bottom: 25px;
+      font-size: 1.6rem;
+    }
+
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .form input {
+      padding: 12px 15px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 15px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .form input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 5px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn.primary {
+      background:  #1e293b;
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .btn.primary:hover {
+      background: #1e3a8a;
+    }
+
+    p {
+      text-align: center;
+      font-size: 14px;
+      color: #4b5563;
+    }
+
+    p a {
+      color: #2563eb;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    p a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Connexion</h2>
+
+    <!-- Lien du formulaire -->
+    <form method="POST" action="/login" class="form">
+      <input type="text" name="phone" placeholder="Numéro (ex: +225...)" required>
+      <input type="password" name="password" placeholder="Mot de passe" required>
+      <button type="submit" class="btn primary">Se connecter</button>
+    </form>
+
+    <p>
+      Nouveau ici ? <a href="/register">Créer un compte</a>
+    </p>
+  </div>
+
+</body>
+</html>

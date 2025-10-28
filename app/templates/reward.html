@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Mes Récompenses</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #007bff, #1c1c1c);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+    }
+
+    .reward-container {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      color: #fff;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 25px;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 15px;
+      border-radius: 10px;
+    }
+
+    .stats div {
+      flex: 1;
+    }
+
+    .stats span {
+      display: block;
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-top: 5px;
+    }
+
+    .cashback-section {
+      margin-top: 15px;
+      font-size: 1.1rem;
+    }
+
+    button {
+      background: #00c851;
+      border: none;
+      padding: 12px 25px;
+      font-size: 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+      color: white;
+    }
+
+    button:disabled {
+      background: gray;
+      cursor: not-allowed;
+    }
+
+    button:hover:not(:disabled) {
+      background: #007e33;
+    }
+
+    .message {
+      margin-top: 15px;
+      font-size: 0.9rem;
+    }
+
+    .back-link {
+      margin-top: 25px;
+      color: #fff;
+      text-decoration: none;
+      opacity: 0.8;
+    }
+
+    .back-link:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+
+    input {
+      width: 80%;
+      padding: 8px;
+      border-radius: 8px;
+      border: none;
+      text-align: center;
+      margin-bottom: 15px;
+      font-size: 1rem;
+    }
+
+    .currency {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <div class="reward-container">
+    <h1>🎁 Mes Récompenses</h1>
+
+    <input type="text" id="phone" placeholder="Entrez votre numéro (+225...)" />
+
+    <div class="currency" id="currency">Devise : --</div>
+
+    <div class="stats">
+      <div>
+        <label>Transferts approuvés</label>
+        <span id="approved">0</span>
+      </div>
+      <div>
+        <label>Cashback</label>
+        <span id="cashback">0</span>
+      </div>
+    </div>
+
+    <div class="cashback-section">
+      <p>💡 1 unité de votre devise pour chaque 5 transferts approuvés</p>
+      <p>💰 Retrait possible à partir de 100 unités</p>
+    </div>
+
+    <button id="withdrawBtn" disabled>Retirer mon cashback</button>
+
+    <div class="message" id="message"></div>
+
+    <a href="/dashboard" class="back-link">⬅ Retour à l'accueil</a>
+  </div>
+
+  <script>
+    async function loadRewards() {
+      const phone = document.getElementById('phone').value.trim();
+      if (!phone) {
+        alert("Veuillez entrer votre numéro de téléphone.");
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/user_rewards?phone=${encodeURIComponent(phone)}`);
+        if (!res.ok) throw new Error("Erreur de chargement des récompenses");
+        const data = await res.json();
+
+        document.getElementById('approved').textContent = data.approved_transfers;
+        document.getElementById('cashback').textContent = data.cashback.toFixed(2);
+        document.getElementById('currency').textContent = "Devise : " + (data.currency || "--");
+
+        const withdrawBtn = document.getElementById('withdrawBtn');
+        withdrawBtn.disabled = data.cashback < 100;
+
+      } catch (err) {
+        document.getElementById('message').textContent = "Erreur : " + err.message;
+      }
+    }
+
+    async function withdrawCashback() {
+      const phone = document.getElementById('phone').value.trim();
+      if (!phone) {
+        alert("Veuillez entrer votre numéro de téléphone.");
+        return;
+      }
+
+      const confirmWithdraw = confirm("Confirmez-vous le retrait de votre cashback ?");
+      if (!confirmWithdraw) return;
+
+      try {
+        const res = await fetch("/api/withdraw_cashback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Erreur de retrait");
+
+        document.getElementById('message').textContent = data.message;
+        loadRewards(); // Recharger les données après retrait
+      } catch (err) {
+        document.getElementById('message').textContent = "Erreur : " + err.message;
+      }
+    }
+
+    document.getElementById('phone').addEventListener('change', loadRewards);
+    document.getElementById('withdrawBtn').addEventListener('click', withdrawCashback);
+  </script>
+</body>
+</html>

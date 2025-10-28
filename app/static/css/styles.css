@@ -1,0 +1,47 @@
+:root{
+  --navy: #0b2b4a;      /* bleu-nuit */
+  --white: #ffffff;
+  --bordeaux: #7a0b1f;  /* bordeaux pour logout */
+  --accent: #2ea6ff;    /* léger bleu pour éléments */
+  --font: "Helvetica Neue", Arial, sans-serif;
+}
+
+*{box-sizing:border-box;font-family:var(--font);}
+
+body{
+  margin:0;
+  background: var(--white);
+  color: #111;
+  min-height:100vh;
+}
+
+.container { padding: 20px; max-width:420px; margin:0 auto; }
+
+/* Splash */
+.splash{ display:flex; flex-direction:column; align-items:center; justify-content:center; height:80vh; text-align:center }
+.logo{ width:120px; height:auto; margin-bottom:20px; }
+.slogan{ color:var(--navy); font-size:18px; font-weight:600; }
+
+/* Form */
+h2{ color:var(--navy); text-align:center; }
+.form { display:flex; flex-direction:column; gap:12px; margin-top:20px; }
+.form input{ padding:12px 14px; border:1px solid #eee; border-radius:8px; font-size:16px; }
+.btn{ padding:12px; border-radius:10px; border:none; cursor:pointer; font-weight:600; width:100% }
+.btn.primary{ background:var(--navy); color:var(--white); }
+.btn.logout{ background:var(--bordeaux); color:var(--white); display:inline-block; padding:10px 14px; border-radius:8px; text-decoration:none; }
+
+/* Pin keypad */
+.keypad{ margin-top:20px; display:grid; gap:12px }
+.row{ display:flex; gap:12px; justify-content:center; }
+.num, .control{ width:80px; height:60px; border-radius:40px; border:none; font-size:22px; background:#f5f9ff; color:var(--navy); }
+.control{ background:#eee; }
+
+.pin-dots{ display:flex; gap:12px; justify-content:center; margin-top:8px; margin-bottom:6px }
+.pin-dots span{ width:18px; height:18px; background: #dff3ff; border-radius:50%; display:inline-block; opacity:0.3; }
+.pin-dots span.active{ background:var(--accent); opacity:1; }
+
+/* Flash */
+.flash-wrapper { position:fixed; top:10px; left:50%; transform:translateX(-50%); z-index:1000; }
+.flash { padding:8px 12px; border-radius:8px; margin-bottom:6px; color:white; }
+.flash.success{ background: #2ecc71 }
+.flash.danger{ background: #e74c3c }

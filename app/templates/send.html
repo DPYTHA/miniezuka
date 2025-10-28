@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Envoyer de l'argent</title>
+<style>
+* {margin:0; padding:0; box-sizing:border-box; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;}
+body {background: linear-gradient(135deg, #667eea 0%,  #0c2137 100%); min-height:100vh; padding:20px;}
+.container {max-width:400px; margin:0 auto;}
+.header {text-align:center; color:white; margin-bottom:30px;}
+.header h1 {font-size:28px; font-weight:600; margin-bottom:10px;}
+.balance-card {background: rgba(255,255,255,0.2); border-radius:15px; padding:20px; text-align:center; color:white; margin-bottom:20px; backdrop-filter: blur(10px);}
+.balance-label {font-size:14px; opacity:0.9; margin-bottom:5px;}
+.balance-amount {font-size:32px; font-weight:700;}
+.card {background:white; border-radius:20px; padding:25px; margin-bottom:20px; box-shadow:0 10px 30px rgba(0,0,0,0.2);}
+.form-group {margin-bottom:20px;}
+.form-group label {display:block; margin-bottom:8px; font-weight:500; color:#333;}
+.form-control {width:100%; padding:15px; border:2px solid #e1e1e1; border-radius:12px; font-size:16px; transition:border-color 0.3s;}
+.form-control:focus {outline:none; border-color:#667eea;}
+.amount-display {background:#f8f9fa; padding:15px; border-radius:12px; text-align:center; margin-top:10px; border:2px solid #e9ecef;}
+.amount-label {font-size:14px; color:#666; margin-bottom:5px;}
+.amount-value {font-size:20px; font-weight:600; color:#28a745;}
+.send-button {background:#0c2137; color:white; border:none; padding:18px; border-radius:12px; font-size:18px; font-weight:600; width:100%; cursor:pointer; transition:background 0.3s; margin-top:20px;}
+.send-button:hover {background:#5a6fd8;}
+.send-button:disabled {background:#ccc; cursor:not-allowed;}
+.modal {display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(5px); z-index:1000; align-items:center; justify-content:center;}
+.modal-content {background:white; border-radius:20px; padding:30px; max-width:350px; width:90%; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.3);}
+.modal-icon {font-size:48px; margin-bottom:20px;}
+.modal-title {font-size:24px; font-weight:600; margin-bottom:15px; color:#333;}
+.modal-message {font-size:16px; color:#666; margin-bottom:25px; line-height:1.5;}
+.modal-amount {font-size:28px; font-weight:700; color:#28a745; margin:15px 0;}
+.modal-button {background:#667eea; color:white; border:none; padding:15px 30px; border-radius:12px; font-size:16px; font-weight:600; cursor:pointer; transition:background 0.3s;}
+.modal-button:hover {background:#5a6fd8;}
+.method-option {display:flex; align-items:center; padding:12px; border:2px solid #e1e1e1; border-radius:12px; margin-bottom:10px; cursor:pointer; transition:all 0.3s;}
+.method-option:hover {border-color:#667eea;}
+.method-option.selected {border-color:#28a745; background-color:#f0fff4;}
+.method-icon {width:40px; height:40px; border-radius:8px; display:flex; align-items:center; justify-content:center; margin-right:12px; font-weight:bold; color:white;}
+.method-info {flex:1;}
+.method-name {font-weight:600; margin-bottom:2px;}
+.method-details {font-size:12px; color:#666;}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Envoyer de l'argent</h1>
+    </div>
+
+    <div class="balance-card">
+        <div class="balance-label">Solde disponible</div>
+        <div class="balance-amount" id="currentBalance">Chargement...</div>
+    </div>
+
+    <div class="card">
+        <div class="form-group">
+            <label for="recipient_phone">Numéro du destinataire</label>
+            <input type="tel" id="recipient_phone" class="form-control" placeholder="Ex: +225 07 08 09 10 11" maxlength="15" required>
+        </div>
+
+        <div class="form-group">
+            <label for="recipient_country">Pays du destinataire</label>
+            <select id="recipient_country" class="form-control" required>
+                <option value="">Sélectionnez un pays</option>
+                <option value="Côte d'Ivoire">Côte d'Ivoire</option>
+                <option value="Mali">Mali</option>
+                <option value="Burkina Faso">Burkina Faso</option>
+                <option value="Sénégal">Sénégal</option>
+                <option value="Guinee">Guinée</option>
+                <option value="Russie">Russie</option>
+                <option value="Canada">Canada</option>
+                <option value="Cameroun">Cameroun</option>
+                <option value="Niger">Niger</option>
+                <option value="Togo">Togo</option>
+                <option value="Benin">Benin</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="amount">Somme à envoyer</label>
+            <input type="number" id="amount" class="form-control" placeholder="0.00" min="0" step="0.01" required>
+        </div>
+
+        <div class="form-group" id="methodGroup" style="display:none;">
+            <label>Méthode de paiement</label>
+            <div id="paymentMethods"></div>
+        </div>
+
+        <div class="amount-display">
+            <div class="amount-label">Le destinataire recevra</div>
+            <div class="amount-value" id="receivedAmount">0.00 </div>
+        </div>
+
+        <button class="send-button" id="sendButton">Envoyer</button>
+    </div>
+</div>
+
+<div class="modal" id="confirmationModal">
+    <div class="modal-content">
+        <div class="modal-icon">💰</div>
+        <div class="modal-title">Transfert réussi !</div>
+        <div class="modal-message">Taux d'echanges :</div>
+        <div class="modal-amount" id="modalAmount">0.00 </div>
+        <div class="modal-message" id="modalDetails"></div>
+        <button class="modal-button" onclick="closeModal()">OK</button>
+    </div>
+</div>
+
+<script>
+let userCountry = 'Côte d\'Ivoire';
+let userCurrency = 'XOF';
+let selectedMethod = '';
+
+// Méthodes de paiement par pays
+const paymentMethods = {
+    "Côte d'Ivoire": {
+        methods: ["Orange Money", "Wave"],
+        details: {
+            "Orange Money": "Transfert instantané",
+            "Wave": "Transfert instantané"
+        }
+    },
+    "Sénégal": {
+        methods: ["Orange Money", "Wave"],
+        details: {
+            "Orange Money": "Transfert instantané",
+            "Wave": "Transfert instantané"
+        }
+    },
+    "Burkina Faso": {
+        methods: ["Orange Money"],
+        details: {
+            "Orange Money": "Transfert instantané"
+        }
+    },
+    "Mali": {
+        methods: ["Orange Money"],
+        details: {
+            "Orange Money": "Transfert instantané"
+        }
+    },
+    "Niger": {
+        methods: ["Nita"],
+        details: {
+            "Nita": "Transfert instantané"
+        }
+    },
+    "Togo": {
+        methods: ["Moov Money"],
+        details: {
+            "Moov Money": "Transfert instantané"
+        }
+    },
+    "Bénin": {
+        methods: ["Moov Money"],
+        details: {
+            "Moov Money": "Transfert instantané"
+        }
+    },
+    "Russie": {
+        methods: ["Sberbank", "Tinkoff"],
+        details: {
+            "Sberbank": "Virement bancaire",
+            "Tinkoff": "Virement bancaire"
+        }
+    },
+    "Guinee": {
+        methods: ["Wave"],
+        details: {
+            "Wave": "Transfert instantané"
+        }
+    },
+    "Cameroun": {
+        methods: ["Orange Money"],
+        details: {
+            "Orange Money": "Transfert instantané"
+        }
+    },
+    "Canada": {
+        methods: ["Interac"],
+        details: {
+            "Mail": "Transfert bancaire"
+        }
+    }
+};
+
+// Définition des devises par pays (identique au backend)
+const countryCurrencies = {
+    "Côte d'Ivoire": "XOF",
+    "Mali": "XOF",
+    "Burkina Faso": "XOF",
+    "Sénégal": "XOF",
+    "Guinee": "GNF",
+    "Russie": "RUB",
+    "Canada": "CAD",
+    "Cameroun": "XAF",
+    "Niger": "XOF",
+    "Togo": "XOF",
+    "Benin": "XOF"
+};
+
+// Frais en % selon la devise de l'expéditeur (identique au backend)
+const feesByCurrency = {
+    "XOF": 2.5,
+    "GNF": 2.5,
+    "RUB": 3.0,
+    "CAD": 3.5,
+    "XAF": 2.5
+};
+
+// Taux de change (identique au backend)
+const exchangeRates = {
+    "XOF,XAF": 0.85,
+    "XOF,GNF": 13.0,
+    "XOF,RUB": 0.14,
+    "XOF,CAD": 0.0022,
+    "XOF,XOF": 1.0,
+
+    "XAF,XOF": 1.1,
+    "XAF,GNF": 12.0,
+    "XAF,RUB": 0.129,
+    "XAF,CAD": 0.0020,
+    "XAF,XAF": 1.0,
+
+    "GNF,XOF": 0.077,
+    "GNF,RUB": 0.011,
+    "GNF,CAD": 0.00017,
+    "GNF,GNF": 1.0,
+
+    "RUB,XOF": 6.6,
+    "RUB,GNF": 90.0,
+    "RUB,CAD": 0.015,
+    "RUB,RUB": 1.0,
+
+    "CAD,XOF": 450.0,
+    "CAD,GNF": 6000.0,
+    "CAD,RUB": 67.0,
+    "CAD,CAD": 1.0,
+};
+
+// Fonction pour afficher les méthodes de paiement
+function showPaymentMethods(country) {
+    const methodGroup = document.getElementById('methodGroup');
+    const paymentMethodsContainer = document.getElementById('paymentMethods');
+    
+    // Réinitialiser la sélection
+    selectedMethod = '';
+    
+    if (paymentMethods[country]) {
+        const methods = paymentMethods[country].methods;
+        const details = paymentMethods[country].details;
+        
+        if (methods.length === 1) {
+            // Une seule méthode - sélection automatique
+            selectedMethod = methods[0];
+            methodGroup.style.display = 'none';
+        } else {
+            // Plusieurs méthodes - afficher le choix
+            methodGroup.style.display = 'block';
+            paymentMethodsContainer.innerHTML = '';
+            
+            methods.forEach(method => {
+                const methodDiv = document.createElement('div');
+                methodDiv.className = 'method-option';
+                methodDiv.onclick = () => selectMethod(method, methodDiv);
+                
+                // Couleurs différentes pour chaque méthode
+                const colors = {
+                    "Orange Money": "#FF6600",
+                    "Wave": "#00A859",
+                    "Moov Money": "#FF0000",
+                    "Nita": "#0066CC",
+                    "Sberbank": "#1A9F29",
+                    "Tinkoff": "#FFDD00",
+                    "Mail": "#0056B3"
+                };
+                
+                methodDiv.innerHTML = `
+                    <div class="method-icon" style="background-color: ${colors[method] || '#667eea'}">
+                        ${method.charAt(0)}
+                    </div>
+                    <div class="method-info">
+                        <div class="method-name">${method}</div>
+                        <div class="method-details">${details[method] || 'Transfert'}</div>
+                    </div>
+                `;
+                
+                paymentMethodsContainer.appendChild(methodDiv);
+            });
+        }
+    } else {
+        methodGroup.style.display = 'none';
+    }
+    
+    updateSendButton();
+}
+
+// Fonction pour sélectionner une méthode
+function selectMethod(method, element) {
+    // Désélectionner toutes les méthodes
+    document.querySelectorAll('.method-option').forEach(opt => {
+        opt.classList.remove('selected');
+    });
+    
+    // Sélectionner la méthode cliquée
+    element.classList.add('selected');
+    selectedMethod = method;
+    updateSendButton();
+}
+
+function calculateReceivedAmount() {
+    const amount = parseFloat(document.getElementById('amount').value) || 0;
+    const recipientCountry = document.getElementById('recipient_country').value;
+    
+    if (!amount || !recipientCountry) {
+        document.getElementById('receivedAmount').textContent = '0.00 ';
+        return;
+    }
+
+    // Déterminer les devises
+    const senderCurrency = userCurrency;
+    const recipientCurrency = countryCurrencies[recipientCountry] || "XOF";
+
+    // Calcul des frais et conversion (identique au backend)
+    const feePercent = feesByCurrency[senderCurrency] || 3.5;
+    const feeAmount = amount * feePercent / 100;
+    const conversionRate = exchangeRates[`${senderCurrency},${recipientCurrency}`] || 1.0;
+    const receivedAmount = (amount - feeAmount) * conversionRate;
+
+    // Mise à jour de l'affichage
+    document.getElementById('receivedAmount').textContent = receivedAmount.toFixed(2) + ' ' + recipientCurrency;
+    
+    updateSendButton();
+}
+
+function updateSendButton() {
+    const phone = document.getElementById('recipient_phone').value;
+    const country = document.getElementById('recipient_country').value;
+    const amount = parseFloat(document.getElementById('amount').value) || 0;
+    const btn = document.getElementById('sendButton');
+    
+    // Vérifier si une méthode est nécessaire et sélectionnée
+    let methodValid = true;
+    if (paymentMethods[country] && paymentMethods[country].methods.length > 1) {
+        methodValid = selectedMethod !== '';
+    }
+    
+    btn.disabled = !phone || !country || amount <= 0 || !methodValid;
+}
+
+async function sendMoney() {
+    const phone = document.getElementById('recipient_phone').value;
+    const country = document.getElementById('recipient_country').value;
+    const amount = parseFloat(document.getElementById('amount').value);
+
+    if (!phone || !country || amount <= 0) {
+        alert('Veuillez remplir tous les champs correctement');
+        return;
+    }
+
+    // Vérifier la méthode de paiement si nécessaire
+    let paymentMethod = '';
+    if (paymentMethods[country] && paymentMethods[country].methods.length > 1) {
+        if (!selectedMethod) {
+            alert('Veuillez sélectionner une méthode de paiement');
+            return;
+        }
+        paymentMethod = selectedMethod;
+    } else if (paymentMethods[country]) {
+        // Une seule méthode disponible
+        paymentMethod = paymentMethods[country].methods[0];
+    }
+
+    const btn = document.getElementById('sendButton');
+    btn.disabled = true;
+    btn.textContent = 'Envoi en cours...';
+
+    try {
+        const res = await fetch('/api/transfer', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            credentials: 'include',
+            body: JSON.stringify({
+                recipient_phone: phone, 
+                amount: amount,
+                recipient_country: country,
+                payment_method: paymentMethod,  // ✅ ENVOYER LA MÉTHODE
+                note: `Vers ${country} - ${paymentMethod}`  // ✅ AJOUTER DANS LA NOTE AUSSI
+            })
+        });
+        
+        const data = await res.json();
+        
+        if (data.ok) {
+            // Utiliser les valeurs calculées par le backend pour l'affichage modal
+            document.getElementById('modalAmount').textContent = 
+                data.net_received.toFixed(2) + ' ' + data.recipient_currency;
+            
+            // Afficher les informations avec la méthode de paiement
+            document.getElementById('modalDetails').innerHTML = 
+                `Montant envoyé: ${data.amount_sent.toFixed(2)} ${data.sender_currency}<br>
+                 Méthode: ${data.payment_method || paymentMethod}<br>
+                 Solde restant: ${data.sender_balance.toFixed(2)} ${data.sender_currency}`;
+            
+            document.getElementById('confirmationModal').style.display = 'flex';
+            await loadBalance(); // Recharger le solde après le transfert
+        } else {
+            alert('Erreur: ' + (data.error || 'Erreur serveur'));
+        }
+    } catch(err) {
+        console.error(err);
+        alert('Erreur lors de l\'envoi');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Envoyer';
+    }
+}
+
+function closeModal() {
+    document.getElementById('confirmationModal').style.display = 'none';
+    // Réinitialiser le formulaire
+    document.getElementById('recipient_phone').value = '';
+    document.getElementById('recipient_country').value = '';
+    document.getElementById('amount').value = '';
+    document.getElementById('receivedAmount').textContent = '0.00 ';
+    document.getElementById('methodGroup').style.display = 'none';
+    selectedMethod = '';
+}
+
+async function loadBalance() {
+    try {
+        console.log("Chargement du solde...");
+        const res = await fetch('/api/user_info', {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        if (!res.ok) {
+            throw new Error(`Erreur HTTP: ${res.status}`);
+        }
+
+        const data = await res.json();
+        console.log("Données reçues:", data);
+        
+        if (data.ok && data.user) {
+            const balance = data.user.balance.toFixed(2);
+            const currency = data.user.currency;
+            
+            document.getElementById('currentBalance').textContent = balance + ' ' + currency;
+            
+            userCountry = data.user.country;
+            userCurrency = data.user.currency;
+            
+            console.log("Solde chargé:", balance, currency);
+            console.log("Pays utilisateur:", userCountry);
+            console.log("Devise utilisateur:", userCurrency);
+            
+            // Recalculer le montant reçu avec les nouvelles informations utilisateur
+            calculateReceivedAmount();
+        } else {
+            throw new Error(data.error || 'Erreur dans les données utilisateur');
+        }
+        
+    } catch (err) {
+        console.error("Erreur lors du chargement du solde:", err);
+        document.getElementById('currentBalance').textContent = 'Erreur';
+        
+        // Rediriger vers la page de login si non authentifié
+        if (err.message.includes('401') || err.message.includes('non connecté')) {
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 2000);
+        }
+    }
+}
+
+// Événements
+document.getElementById('amount').addEventListener('input', calculateReceivedAmount);
+document.getElementById('recipient_country').addEventListener('change', function() {
+    calculateReceivedAmount();
+    showPaymentMethods(this.value);
+});
+document.getElementById('recipient_phone').addEventListener('input', updateSendButton);
+document.getElementById('sendButton').addEventListener('click', sendMoney);
+
+// Chargement initial au démarrage
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM chargé, initialisation...");
+    loadBalance();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connexion par PIN</title>
+<style>
+body { background-color: #0f172a; font-family: "Poppins", sans-serif; text-align: center; padding-top: 80px; }
+h2 { color: #1e3a8a; font-size: 1.5rem; margin-bottom: 20px; }
+.pin-dots { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; }
+.pin-dots span { width: 15px; height: 15px; border-radius: 50%; border: 2px solid #1e3a8a; background: transparent; transition: 0.3s; }
+.pin-dots span.filled { background: #dadce0; }
+.keypad { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.row { display: flex; gap: 10px; }
+.num, .control { width: 60px; height: 60px; border-radius: 50%; border: none; background: #0d2354; color: white; font-size: 20px; cursor: pointer; transition: background 0.3s ease; }
+.num:hover, .control:hover { background: #1d4ed8; }
+#clear { background: #ef4444; }
+#back { background: #f59e0b; }
+</style>
+</head>
+<body>
+
+<h2>Entrer votre code PIN</h2>
+
+<form id="loginForm" method="POST" action="/login_pin">
+  <input type="hidden" id="pin" name="pin" value="">
+  <div class="pin-dots" id="dots">
+    <span></span><span></span><span></span><span></span>
+  </div>
+</form>
+
+<div class="keypad">
+  <div class="row"><button class="num">1</button><button class="num">2</button><button class="num">3</button></div>
+  <div class="row"><button class="num">4</button><button class="num">5</button><button class="num">6</button></div>
+  <div class="row"><button class="num">7</button><button class="num">8</button><button class="num">9</button></div>
+  <div class="row"><button id="clear" class="control">C</button><button class="num">0</button><button id="back" class="control">⌫</button></div>
+</div>
+
+<script>
+const pinInput = document.getElementById("pin");
+const dots = document.querySelectorAll("#dots span");
+let pin = "";
+
+document.querySelectorAll(".num").forEach(btn => {
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    if (pin.length < 4) {
+      pin += btn.textContent;
+      dots[pin.length-1].classList.add("filled");
+      if (pin.length === 4) {
+        pinInput.value = pin;
+        document.getElementById("loginForm").submit();
+      }
+    }
+  });
+});
+
+document.getElementById("clear").onclick = (e) => {
+  e.preventDefault();
+  pin = "";
+  pinInput.value = "";
+  dots.forEach(d => d.classList.remove("filled"));
+};
+
+document.getElementById("back").onclick = (e) => {
+  e.preventDefault();
+  if (pin.length > 0) {
+    dots[pin.length-1].classList.remove("filled");
+    pin = pin.slice(0, -1);
+    pinInput.value = pin;
+  }
+};
+</script>
+
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Créer un code PIN</title>
+<style>
+body {
+  background-color: #0f172a;
+  color: white;
+  font-family: "Poppins", sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  margin: 0;
+  text-align: center;
+}
+h2 { margin-bottom: 20px; font-size: 1.6rem; color: #93c5fd; }
+
+.pin-dots { display: flex; justify-content: center; margin-bottom: 25px; gap: 10px; }
+.pin-dots span { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #93c5fd; display: inline-block; transition: background 0.3s ease; }
+.pin-dots span.filled { background-color: #93c5fd; }
+
+.keypad { display: grid; gap: 10px; }
+.row { display: flex; justify-content: center; gap: 15px; }
+button { width: 60px; height: 60px; border: none; border-radius: 50%; font-size: 1.3rem; cursor: pointer; background-color: #1e293b; color: white; transition: background-color 0.2s; }
+button:hover { background-color: #334155; }
+.control { background-color: #64748b; }
+.btn.primary { background-color: #11192b; color: white; border-radius: 8px; padding: 10px 25px; width: 100px; height: 50px; text-align: center; margin-top: 25px; font-size: 1rem; cursor: pointer; border: none; transition: background-color 0.3s; }
+.btn.primary:hover { background-color: #1d4ed8; }
+</style>
+</head>
+<body>
+
+<h2>Créer votre code PIN</h2>
+
+<form id="pinForm" method="POST" action="/setup_pin">
+  <div class="pin-dots" id="dots">
+    <span></span><span></span><span></span><span></span>
+  </div>
+  <input type="hidden" id="pin" name="pin" value="">
+</form>
+
+<div class="keypad">
+  <div class="row"><button class="num">1</button><button class="num">2</button><button class="num">3</button></div>
+  <div class="row"><button class="num">4</button><button class="num">5</button><button class="num">6</button></div>
+  <div class="row"><button class="num">7</button><button class="num">8</button><button class="num">9</button></div>
+  <div class="row"><button id="clear" class="control">C</button><button class="num">0</button><button id="back" class="control">⌫</button></div>
+</div>
+
+<button id="submitPin" class="btn primary">Valider</button>
+
+<script>
+const pinInput = document.getElementById("pin");
+const dots = document.querySelectorAll("#dots span");
+let pin = "";
+
+document.querySelectorAll(".num").forEach(btn => {
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    if (pin.length < 4) {
+      pin += btn.textContent;
+      dots[pin.length-1].classList.add("filled");
+      if (pin.length === 4) {
+        pinInput.value = pin;
+      }
+    }
+  });
+});
+
+document.getElementById("clear").onclick = (e) => {
+  e.preventDefault();
+  pin = "";
+  pinInput.value = "";
+  dots.forEach(d => d.classList.remove("filled"));
+};
+
+document.getElementById("back").onclick = (e) => {
+  e.preventDefault();
+  if (pin.length > 0) {
+    dots[pin.length-1].classList.remove("filled");
+    pin = pin.slice(0, -1);
+    pinInput.value = pin;
+  }
+};
+
+document.getElementById("submitPin").onclick = (e) => {
+  e.preventDefault();
+  if (pin.length === 4) {
+    document.getElementById("pinForm").submit();
+  } else {
+    alert("Veuillez entrer un code PIN à 4 chiffres.");
+  }
+};
+</script>
+
+</body>
+</html>

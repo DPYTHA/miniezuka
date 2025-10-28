@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paramètres</title>
+<style>
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%,  #0c2137 100%);
+    margin: 0;
+    padding: 20px;
+    color: #333;
+}
+.container {
+    max-width: 500px;
+    margin: 50px auto;
+}
+.header {
+    text-align: center;
+    color: white;
+    margin-bottom: 30px;
+}
+.header h1 {font-size: 28px; font-weight: 600;}
+.card {
+    background: white;
+    border-radius: 20px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+.card h2 {font-size: 20px; margin-bottom: 15px;}
+.info-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.info-item svg {
+    width: 24px;
+    height: 24px;
+    margin-right: 15px;
+    fill: #667eea;
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+}
+.switch input {opacity: 0; width: 0; height: 0;}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top:0; left:0; right:0; bottom:0;
+  background-color:#ccc;
+  transition:.4s;
+  border-radius: 28px;
+}
+.slider:before {
+  position: absolute;
+  content:"";
+  height:20px;
+  width:20px;
+  left:4px;
+  bottom:4px;
+  background:white;
+  transition:.4s;
+  border-radius:50%;
+}
+input:checked + .slider {background:#667eea;}
+input:checked + .slider:before {transform: translateX(22px);}
+.share-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0c2137;
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+    width: 100%;
+}
+.share-button svg {width: 20px; height: 20px; margin-right:10px; fill:white;}
+.share-button:hover {background: #218838;}
+
+/* Loading state */
+.loading {
+    color: #666;
+    font-style: italic;
+}
+
+.error {
+    color: #e74c3c;
+    font-style: italic;
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="header"><h1>Paramètres</h1></div>
+
+    <!-- Profil utilisateur -->
+    <div class="card">
+        <h2>Profil utilisateur</h2>
+        <div class="info-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M12 12c2.7 0 4.88-2.18 4.88-4.88S14.7 2.24 12 2.24 7.12 4.42 7.12 7.12 9.3 12 12 12zm0 2.25c-3.18 0-9.5 1.59-9.5 4.75v1.5h19v-1.5c0-3.16-6.32-4.75-9.5-4.75z"/>
+            </svg>
+            <span id="userName" class="loading">Chargement...</span>
+        </div>
+        <div class="info-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm0 2v.01L12 13 4 6.01V6h16zm0 12H4V8l8 5 8-5v10z"/>
+            </svg>
+            <span id="userCountry" class="loading">Chargement...</span>
+        </div>
+        <div class="info-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5 14.5 7.62 14.5 9 13.38 11.5 12 11.5z"/>
+            </svg>
+            <span id="userPhone" class="loading">Chargement...</span>
+        </div>
+        <div class="info-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91 2.56.62 4.18 1.63 4.18 3.71 0 1.76-1.37 2.92-3.12 3.28z"/>
+            </svg>
+            <span id="userBalance" class="loading">Chargement...</span>
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="card">
+        <h2>Notifications</h2>
+        <div class="info-item">
+            <span>Activer notifications push</span>
+            <label class="switch">
+                <input type="checkbox" id="pushNotify" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="info-item">
+            <span>Activer notifications SMS</span>
+            <label class="switch">
+                <input type="checkbox" id="smsNotify" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <!-- Sécurité -->
+    <div class="card">
+        <h2>Sécurité</h2>
+        <div class="info-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M12 17a2 2 0 100-4 2 2 0 000 4zm6-6V9a6 6 0 10-12 0v2H4v10h16V11h-2zm-8-2a4 4 0 118 0v2H10V9z"/>
+            </svg>
+            <span>Changer mot de passe</span>
+        </div>
+        <div class="info-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M12 1a9 9 0 00-9 9c0 7 9 13 9 13s9-6 9-13a9 9 0 00-9-9zm0 12.5a3.5 3.5 0 110-7 3.5 3.5 0 010 7z"/>
+            </svg>
+            <span>PIN déjà activé</span>
+        </div>
+    </div>
+
+    <!-- Coordonnées support -->
+    <div class="card">
+        <h2>Support</h2>
+        <div class="info-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.21 11.72 11.72 0 003.64.57 1 1 0 011 1v3.5a1 1 0 01-1 1C10.07 22 2 13.93 2 3a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.49.57 3.64a1 1 0 01-.21 1.11l-2.24 2.24z"/>
+            </svg>
+            <span>+7 9879040719</span>
+        </div>
+        <div class="info-item">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm0 2v.01L12 13 4 6.01V6h16zm0 12H4V8l8 5 8-5v10z"/>
+            </svg>
+            <span>pythamoua@gmail.com</span>
+        </div>
+    </div>
+
+    <!-- Partager l'application -->
+    <div class="card">
+        <h2>Partager notre application</h2>
+        <button class="share-button" onclick="shareApp()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.03-.47-.09-.7l7.02-4.11c.54.5 1.25.81 2.07.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.91 9.81C8.38 9.34 7.7 9 6.94 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.76 0 1.44-.34 1.97-.81l7.12 4.16c-.05.21-.09.43-.09.65 0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3z"/>
+            </svg>
+            Partager l'app
+        </button>
+    </div>
+
+    <!-- À propos -->
+    <div class="card">
+        <h2>À propos</h2>
+        <div class="info-item">
+            <span>Startup: @pythacademy - Version 1.0.0</span>
+        </div>
+        <div class="info-item">
+            <span>&copy; 2025 - E$ukapp. Tous droits réservés.</span>
+        </div>
+    </div>
+
+    <!-- Déconnexion -->
+    <div class="card">
+        <button class="share-button" onclick="logout()" style="background: #e74c3c;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white">
+                <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+            </svg>
+            Se déconnecter
+        </button>
+    </div>
+</div>
+
+<script>
+function shareApp() {
+    if (navigator.share) {
+        navigator.share({
+            title: 'E$uka',
+            text: 'Recevoir et transférer votre argent simplement!',
+            url: window.location.origin
+        }).then(() => console.log('Partage réussi'))
+        .catch((err) => console.error('Erreur partage:', err));
+    } else {
+        // Fallback pour les navigateurs qui ne supportent pas Web Share API
+        const url = window.location.origin;
+        navigator.clipboard.writeText(url).then(() => {
+            alert('Lien copié dans le presse-papier !');
+        }).catch(() => {
+            alert(`Partagez ce lien: ${url}`);
+        });
+    }
+}
+
+function logout() {
+    if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+        window.location.href = '/logout';
+    }
+}
+
+// Chargement des données utilisateur
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        console.log("Chargement des informations utilisateur...");
+        
+        const response = await fetch("/api/user_info", {
+            method: 'GET',
+            credentials: 'include'  // Important pour envoyer les cookies de session
+        });
+
+        if (!response.ok) {
+            throw new Error(`Erreur HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Données reçues:", data);
+
+        if (data.ok && data.user) {
+            // Mettre à jour les informations du profil
+            document.getElementById("userName").textContent = 
+                `${data.user.first_name} ${data.user.last_name}`;
+            document.getElementById("userName").className = "";
+            
+            document.getElementById("userCountry").textContent = 
+                data.user.country || "Non spécifié";
+            document.getElementById("userCountry").className = "";
+            
+            document.getElementById("userPhone").textContent = 
+                data.user.phone || "Non renseigné";
+            document.getElementById("userPhone").className = "";
+            
+            document.getElementById("userBalance").textContent = 
+                `${data.user.balance.toFixed(2)} ${data.user.currency}`;
+            document.getElementById("userBalance").className = "";
+
+            console.log("Informations utilisateur chargées avec succès");
+
+        } else {
+            throw new Error(data.error || "Format de réponse invalide");
+        }
+
+    } catch (error) {
+        console.error("Erreur lors du chargement des infos:", error);
+        
+        // Afficher les messages d'erreur
+        document.getElementById("userName").textContent = "Erreur de chargement";
+        document.getElementById("userName").className = "error";
+        
+        document.getElementById("userCountry").textContent = "Erreur de chargement";
+        document.getElementById("userCountry").className = "error";
+        
+        document.getElementById("userPhone").textContent = "Erreur de chargement";
+        document.getElementById("userPhone").className = "error";
+        
+        document.getElementById("userBalance").textContent = "Erreur de chargement";
+        document.getElementById("userBalance").className = "error";
+
+        // Rediriger vers la page de login si non authentifié
+        if (error.message.includes('401') || error.message.includes('non connecté')) {
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 2000);
+        }
+    }
+});
+
+// Gestion des paramètres de notification
+document.addEventListener('DOMContentLoaded', function() {
+    const pushNotify = document.getElementById('pushNotify');
+    const smsNotify = document.getElementById('smsNotify');
+
+    // Charger les préférences sauvegardées
+    const savedPushNotify = localStorage.getItem('pushNotify');
+    const savedSmsNotify = localStorage.getItem('smsNotify');
+
+    if (savedPushNotify !== null) {
+        pushNotify.checked = savedPushNotify === 'true';
+    }
+
+    if (savedSmsNotify !== null) {
+        smsNotify.checked = savedSmsNotify === 'true';
+    }
+
+    // Sauvegarder les changements
+    pushNotify.addEventListener('change', function() {
+        localStorage.setItem('pushNotify', this.checked);
+    });
+
+    smsNotify.addEventListener('change', function() {
+        localStorage.setItem('smsNotify', this.checked);
+    });
+});
+</script>
+
+</body>
+</html>
