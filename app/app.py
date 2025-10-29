@@ -26,12 +26,24 @@ STATIC_DIR = os.path.join(APP_DIR, "static")
 app = Flask(__name__, static_folder=STATIC_DIR)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "change-me-please")
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")  # Pas de valeur par défaut en prod
-# Configuration base de données
-# Configuration pour Railway
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', '').replace(
-    'postgres://', 'postgresql://'
-)
+
+
+# Configuration de la base de données avec validation
+database_url = os.environ.get('DATABASE_URL', '')
+
+if database_url:
+    # Correction pour PostgreSQL sur Railway
+    if database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    # Fallback vers SQLite si DATABASE_URL n'est pas définie
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 db = SQLAlchemy(app)
 
