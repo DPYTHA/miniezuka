@@ -341,7 +341,7 @@
   // Charger le solde et les infos utilisateur
   async function loadUserInfo() {
     try {
-      const response = await fetch('https://miniezuka-production.up.railway.app/api/user_info');
+      const response = await fetch('/api/user_info');
       const data = await response.json();
 
       // ✅ Ton backend retourne maintenant data.user
@@ -408,7 +408,7 @@
     depotButton.textContent = 'Traitement...';
 
     try {
-      const response = await fetch('https://miniezuka-production.up.railway.app/api/depot_request', {
+      const response = await fetch('/api/depot_request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

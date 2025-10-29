@@ -376,7 +376,7 @@ async function sendMoney() {
     btn.textContent = 'Envoi en cours...';
 
     try {
-        const res = await fetch('https://miniezuka-production.up.railway.app/api/transfer', {
+        const res = await fetch('/api/transfer', {
             method: 'POST',
             headers: {'Content-Type':'application/json'},
             credentials: 'include',
@@ -430,7 +430,7 @@ function closeModal() {
 async function loadBalance() {
     try {
         console.log("Chargement du solde...");
-        const res = await fetch('https://miniezuka-production.up.railway.app/api/user_info', {
+        const res = await fetch('/api/user_info', {
             method: 'GET',
             credentials: 'include'
         });
