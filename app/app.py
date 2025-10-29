@@ -2096,6 +2096,8 @@ with app.app_context():
     init_default_fees_and_rates()
     print("✅ Application initialisée avec succès.")
 
-# Gunicorn va démarrer l'app automatiquement avec :
-#   gunicorn app:app --bind 0.0.0.0:8080
+# ✅ Exposition pour Gunicorn
+# (Très important : Gunicorn cherche cette variable globale)
+application = app
+
 
