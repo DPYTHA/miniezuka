@@ -1534,22 +1534,14 @@ class TelegramNotifier:
     def __init__(self):
         # Récupérer le token depuis les variables d'environnement
         self.bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
-        self.chat_id = None
-        
-        # Si le token n'est pas configuré, on désactive Telegram sans planter
         if not self.bot_token:
-            print("⚠️ TELEGRAM_BOT_TOKEN non configuré - Telegram désactivé")
-            self.enabled = False
-            return
+            raise ValueError("❌ TELEGRAM_BOT_TOKEN non configuré dans les variables d'environnement")
         
-        self.enabled = True
+        self.chat_id = None
         self.setup_bot()
         
-    def setup_bot(self):
+    def setup_bot(self):  # ✅ BIEN ALIGNÉ SOUS __init__
         """Configure le bot et récupère le chat ID"""
-        if not self.enabled:
-            return
-            
         try:
             print("🤖 Configuration du bot Telegram...")
             
@@ -1568,20 +1560,61 @@ class TelegramNotifier:
                 print(f"   Username: @{bot_info['result']['username']}")
                 
                 # Récupérer les updates pour obtenir le chat ID
-                self.get_chat_id()
+                self.get_chat_id()  # ✅ MAINTENANT CETTE MÉTHODE EXISTE
             else:
                 print(f"❌ Erreur configuration bot: {response.text}")
                 
         except Exception as e:
             print(f"❌ Erreur setup bot: {e}")
-            self.enabled = False
+    
+    def get_chat_id(self):  # ✅ AJOUTER CETTE MÉTHODE BIEN ALIGNÉE
+        """Récupère automatiquement le chat ID avec meilleure gestion"""
+        try:
+            url = f"https://api.telegram.org/bot{self.bot_token}/getUpdates"
+            response = requests.get(url, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data['result']:
+                    # Prendre le dernier chat qui a envoyé un message
+                    last_update = data['result'][-1]
+                    self.chat_id = last_update['message']['chat']['id']
+                    print(f"✅ Chat ID récupéré: {self.chat_id}")
+                    
+                    # Sauvegarder le chat ID pour éviter de le redemander
+                    try:
+                        with open("telegram_chat_id.txt", "w") as f:
+                            f.write(str(self.chat_id))
+                    except:
+                        pass
+                    
+                    # Envoyer un message de bienvenue
+                    welcome_msg = """
+🔔 <b>Système Miniezuka Activé!</b>
+
+✅ Votre système de notification Telegram est maintenant opérationnel!
+
+Vous recevrez des alertes en temps réel pour :
+💰 Nouveaux dépôts
+💸 Demandes de retrait  
+🔄 Transferts d'argent
+
+<b>Prochaine étape :</b>
+1. Allez sur votre app Railway /admin/test_telegram
+2. Vous recevrez des notifications de test
+                    """
+                    self.send_message(welcome_msg)
+                else:
+                    print("❌ Aucun message reçu par le bot")
+                    print("📝 INSTRUCTION : Ouvrez Telegram, cherchez @EzukaTransfBot et envoyez 'Start'")
+            else:
+                print(f"❌ Erreur API Telegram: {response.text}")
+                
+        except Exception as e:
+            print(f"❌ Erreur récupération chat ID: {e}")
     
     def send_message(self, message):
         """Envoie un message via Telegram Bot"""
-        if not self.enabled:
-            print("📢 Telegram désactivé - Message:", message[:100] + "...")
-            return False
-            
         try:
             if not self.chat_id:
                 print("⚠️ Chat ID non configuré - tentative de récupération...")
@@ -1605,14 +1638,16 @@ class TelegramNotifier:
                 return True
             else:
                 print(f"❌ Erreur Telegram: {response.status_code} - {response.text}")
+                # Tentative de récupération du chat ID en cas d'erreur
+                if "chat not found" in response.text.lower():
+                    self.get_chat_id()
                 return False
                 
         except Exception as e:
             print(f"❌ Erreur envoi Telegram: {e}")
             return False
     
-     
-    def load_saved_chat_id(self):  # ✅ CORRIGER L'INDENTATION - même niveau que send_message
+    def load_saved_chat_id(self):
         """Charge le chat ID sauvegardé"""
         try:
             if os.path.exists("telegram_chat_id.txt"):
