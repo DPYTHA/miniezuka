@@ -249,7 +249,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
         console.log("Chargement des informations utilisateur...");
         
-        const response = await fetch("/api/user_info", {
+        const response = await fetch("https://miniezuka-production.up.railway.app/api/user_info", {
             method: 'GET',
             credentials: 'include'  // Important pour envoyer les cookies de session
         });

@@ -154,7 +154,7 @@
       }
 
       try {
-        const res = await fetch(`/api/user_rewards?phone=${encodeURIComponent(phone)}`);
+        const res = await fetch(`https://miniezuka-production.up.railway.app/api/user_rewards?phone=${encodeURIComponent(phone)}`);
         if (!res.ok) throw new Error("Erreur de chargement des récompenses");
         const data = await res.json();
 
@@ -181,7 +181,7 @@
       if (!confirmWithdraw) return;
 
       try {
-        const res = await fetch("/api/withdraw_cashback", {
+        const res = await fetch("https://miniezuka-production.up.railway.app/api/withdraw_cashback", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ phone })

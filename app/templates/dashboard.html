@@ -236,7 +236,7 @@ async function loadHistory() {
   table.innerHTML = "<tr><td colspan='6'>Chargement...</td></tr>";
 
   try {
-    const res = await fetch("http://127.0.0.1:5000/api/history");
+    const res = await fetch("https://miniezuka-production.up.railway.app/api/history");
     const data = await res.json();
 
     if (!Array.isArray(data) || data.length === 0) {
@@ -308,7 +308,7 @@ function navigateTo(page) {
   // Récupère les infos utilisateur depuis ton API Flask
   async function loadUserInfo() {
     try {
-      const res = await fetch("http://127.0.0.1:5000/api/user_info");
+      const res = await fetch("https://miniezuka-production.up.railway.app/api/user_info");
       const data = await res.json();
 
       if (!data.ok) {

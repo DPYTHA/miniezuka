@@ -101,7 +101,7 @@ let userCurrency = 'XOF';
 
 async function loadUserInfo() {
     try {
-        const res = await fetch('/api/user_info', {
+        const res = await fetch('https://miniezuka-production.up.railway.app/api/user_info', {
             method: 'GET',
             credentials: 'include'
         });
@@ -168,7 +168,7 @@ async function initiateWithdraw() {
     btn.textContent = 'Traitement...';
 
     try {
-        const res = await fetch('/api/withdraw_request', {
+        const res = await fetch('https://miniezuka-production.up.railway.app/api/withdraw_request', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             credentials: 'include',
