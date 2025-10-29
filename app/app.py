@@ -1752,7 +1752,7 @@ class AdvancedNotifier:
             message += f"\n\n⚠️ <b>TRANSACTION IMPORTANTE - TRAITEMENT IMMÉDIAT REQUIS!</b> ⚠️"
         
         # Bouton d'action
-        message += f"\n\n🔗 <a href='http://127.0.0.1:5000/admin/advanced'>📊 ACCÉDER AU TABLEAU DE BORD</a>"
+        message += f"\n\n🔗 <a href='https://miniezuka-production.up.railway.app/admin/advanced'>📊 ACCÉDER AU TABLEAU DE BORD</a>"
         
         return message
 
