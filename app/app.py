@@ -2090,11 +2090,12 @@ def admin_fees_management():
 
 # -------------------- Run --------------------
 
-if __name__ == "__main__":
-    with app.app_context():
-        create_admin()
-        init_default_fees_and_rates()
-        print("🚀 Système de surveillance démarré!")
- # ✅ Initialise les données par défaut
-        
-    app.run(debug=True, host="0.0.0.0", port=5000)
+# -------------------- Initialisation automatique --------------------
+with app.app_context():
+    create_admin()
+    init_default_fees_and_rates()
+    print("✅ Application initialisée avec succès.")
+
+# Gunicorn va démarrer l'app automatiquement avec :
+#   gunicorn app:app --bind 0.0.0.0:8080
+
