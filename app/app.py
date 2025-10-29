@@ -19,14 +19,13 @@ import requests
 import json
 from datetime import datetime
 # -------------------- Configuration --------------------
+# -------------------- Configuration --------------------
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_DIR = os.path.join(APP_DIR, "templates")
 STATIC_DIR = os.path.join(APP_DIR, "static")
 
 app = Flask(__name__, static_folder=STATIC_DIR)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "change-me-please")
-app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")  # Pas de valeur par défaut en prod
-
 
 # Configuration de la base de données avec validation
 database_url = os.environ.get('DATABASE_URL', '')
@@ -43,10 +42,10 @@ else:
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# ⬇️ UNE SEULE INSTANCE SQLALCHEMY ⬇️
 db = SQLAlchemy(app)
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
-
-
+# ⬆️ NE PAS REMETTE db = SQLAlchemy(app) ICI ⬆️
 # -------------------- Models --------------------
 class User(db.Model):
     __tablename__ = "users"
