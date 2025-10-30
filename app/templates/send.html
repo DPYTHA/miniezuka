@@ -140,7 +140,7 @@ let countryCurrencies = {};
 let feesByCurrency = {};
 let exchangeRates = {};
 
-// Méthodes de paiement par pays (gardé car c'est de la logique métier)
+// Méthodes de paiement par pays - VERSION CORRIGÉE avec mapping flexible
 const paymentMethods = {
     "Côte d'Ivoire": {
         methods: ["Orange Money", "Wave"],
@@ -193,7 +193,7 @@ const paymentMethods = {
             "Tinkoff": "Virement bancaire"
         }
     },
-    "Guinee": {
+    "Guinée": {
         methods: ["Wave"],
         details: {
             "Wave": "Transfert instantané"
@@ -208,9 +208,45 @@ const paymentMethods = {
     "Canada": {
         methods: ["Interac"],
         details: {
-            "Mail": "Transfert bancaire"
+            "Interac": "Transfert bancaire"
+        }
+    },
+    "Gabon": {
+        methods: ["Orange Money"],
+        details: {
+            "Orange Money": "Transfert instantané"
+        }
+    },
+    "Ghana": {
+        methods: ["MTN Mobile Money"],
+        details: {
+            "MTN Mobile Money": "Transfert instantané"
+        }
+    },
+    "Nigéria": {
+        methods: ["Paga"],
+        details: {
+            "Paga": "Transfert instantané"
         }
     }
+};
+
+// Mapping des noms de pays pour la compatibilité
+const countryNameMapping = {
+    "Guinee": "Guinée",
+    "Benin": "Bénin",
+    "Côte d'Ivoire": "Côte d'Ivoire",
+    "Sénégal": "Sénégal", 
+    "Burkina Faso": "Burkina Faso",
+    "Mali": "Mali",
+    "Niger": "Niger",
+    "Togo": "Togo",
+    "Russie": "Russie",
+    "Canada": "Canada",
+    "Cameroun": "Cameroun",
+    "Gabon": "Gabon",
+    "Ghana": "Ghana",
+    "Nigéria": "Nigéria"
 };
 
 // Fonction pour charger les configurations depuis l'API
@@ -278,13 +314,16 @@ function loadDefaultConfig() {
         "Mali": "XOF",
         "Burkina Faso": "XOF",
         "Sénégal": "XOF",
-        "Guinee": "GNF",
+        "Guinée": "GNF",
         "Russie": "RUB",
         "Canada": "CAD",
         "Cameroun": "XAF",
         "Niger": "XOF",
         "Togo": "XOF",
-        "Benin": "XOF"
+        "Bénin": "XOF",
+        "Gabon": "XAF",
+        "Ghana": "GHS",
+        "Nigéria": "NGN"
     };
 
     feesByCurrency = {
@@ -292,7 +331,9 @@ function loadDefaultConfig() {
         "GNF": 2.5,
         "RUB": 3.0,
         "CAD": 3.5,
-        "XAF": 2.5
+        "XAF": 2.5,
+        "GHS": 3.0,
+        "NGN": 3.0
     };
 
     exchangeRates = {
@@ -347,7 +388,31 @@ function updateCountrySelectors() {
     }
 }
 
-// Fonction pour afficher les méthodes de paiement
+// Fonction pour trouver le nom de pays compatible
+function getCompatibleCountryName(countryName) {
+    // Essayer d'abord le nom exact
+    if (paymentMethods[countryName]) {
+        return countryName;
+    }
+    
+    // Chercher dans le mapping
+    for (const [key, value] of Object.entries(countryNameMapping)) {
+        if (value === countryName) {
+            return key;
+        }
+    }
+    
+    // Essayer une correspondance partielle
+    for (const key of Object.keys(paymentMethods)) {
+        if (key.includes(countryName) || countryName.includes(key)) {
+            return key;
+        }
+    }
+    
+    return null;
+}
+
+// Fonction pour afficher les méthodes de paiement - VERSION CORRIGÉE
 function showPaymentMethods(country) {
     const methodGroup = document.getElementById('methodGroup');
     const paymentMethodsContainer = document.getElementById('paymentMethods');
@@ -355,14 +420,26 @@ function showPaymentMethods(country) {
     // Réinitialiser la sélection
     selectedMethod = '';
     
-    if (paymentMethods[country]) {
-        const methods = paymentMethods[country].methods;
-        const details = paymentMethods[country].details;
+    if (!country) {
+        methodGroup.style.display = 'none';
+        return;
+    }
+    
+    // Trouver le nom de pays compatible
+    const compatibleCountry = getCompatibleCountryName(country);
+    console.log(`Pays sélectionné: ${country}, Compatible: ${compatibleCountry}`);
+    
+    if (compatibleCountry && paymentMethods[compatibleCountry]) {
+        const methods = paymentMethods[compatibleCountry].methods;
+        const details = paymentMethods[compatibleCountry].details;
+        
+        console.log(`Méthodes trouvées pour ${compatibleCountry}:`, methods);
         
         if (methods.length === 1) {
             // Une seule méthode - sélection automatique
             selectedMethod = methods[0];
             methodGroup.style.display = 'none';
+            console.log(`Méthode automatique sélectionnée: ${selectedMethod}`);
         } else {
             // Plusieurs méthodes - afficher le choix
             methodGroup.style.display = 'block';
@@ -381,7 +458,9 @@ function showPaymentMethods(country) {
                     "Nita": "#0066CC",
                     "Sberbank": "#1A9F29",
                     "Tinkoff": "#FFDD00",
-                    "Mail": "#0056B3"
+                    "Interac": "#0056B3",
+                    "MTN Mobile Money": "#FFCC00",
+                    "Paga": "#800080"
                 };
                 
                 methodDiv.innerHTML = `
@@ -396,9 +475,12 @@ function showPaymentMethods(country) {
                 
                 paymentMethodsContainer.appendChild(methodDiv);
             });
+            
+            console.log(`${methods.length} méthodes affichées pour ${country}`);
         }
     } else {
         methodGroup.style.display = 'none';
+        console.log(`Aucune méthode trouvée pour: ${country}`);
     }
     
     updateSendButton();
@@ -414,6 +496,7 @@ function selectMethod(method, element) {
     // Sélectionner la méthode cliquée
     element.classList.add('selected');
     selectedMethod = method;
+    console.log(`Méthode sélectionnée: ${selectedMethod}`);
     updateSendButton();
 }
 
@@ -468,8 +551,11 @@ function updateSendButton() {
     
     // Vérifier si une méthode est nécessaire et sélectionnée
     let methodValid = true;
-    if (paymentMethods[country] && paymentMethods[country].methods.length > 1) {
+    const compatibleCountry = getCompatibleCountryName(country);
+    
+    if (compatibleCountry && paymentMethods[compatibleCountry] && paymentMethods[compatibleCountry].methods.length > 1) {
         methodValid = selectedMethod !== '';
+        console.log(`Validation méthode: ${methodValid}, Méthode sélectionnée: ${selectedMethod}`);
     }
     
     btn.disabled = !phone || !country || amount <= 0 || !methodValid;
@@ -487,15 +573,19 @@ async function sendMoney() {
 
     // Vérifier la méthode de paiement si nécessaire
     let paymentMethod = '';
-    if (paymentMethods[country] && paymentMethods[country].methods.length > 1) {
-        if (!selectedMethod) {
-            alert('Veuillez sélectionner une méthode de paiement');
-            return;
+    const compatibleCountry = getCompatibleCountryName(country);
+    
+    if (compatibleCountry && paymentMethods[compatibleCountry]) {
+        if (paymentMethods[compatibleCountry].methods.length > 1) {
+            if (!selectedMethod) {
+                alert('Veuillez sélectionner une méthode de paiement');
+                return;
+            }
+            paymentMethod = selectedMethod;
+        } else {
+            // Une seule méthode disponible
+            paymentMethod = paymentMethods[compatibleCountry].methods[0];
         }
-        paymentMethod = selectedMethod;
-    } else if (paymentMethods[country]) {
-        // Une seule méthode disponible
-        paymentMethod = paymentMethods[country].methods[0];
     }
 
     const btn = document.getElementById('sendButton');
@@ -511,8 +601,8 @@ async function sendMoney() {
                 recipient_phone: phone, 
                 amount: amount,
                 recipient_country: country,
-                payment_method: paymentMethod,  // ✅ ENVOYER LA MÉTHODE
-                note: `Vers ${country} - ${paymentMethod}`  // ✅ AJOUTER DANS LA NOTE AUSSI
+                payment_method: paymentMethod,
+                note: `Vers ${country} - ${paymentMethod}`
             })
         });
         
