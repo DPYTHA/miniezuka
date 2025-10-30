@@ -109,7 +109,9 @@ body {background: linear-gradient(135deg, #667eea 0%,  #0c2137 100%); min-height
                 <option value="Niger">Niger</option>
                 <option value="Togo">Togo</option>
                 <option value="Benin">Benin</option>
-                <option value="Nigeria">Nigeria</option>
+                <option value="Gabon">Gabon</option>
+                <option value="Ghana">Ghana</option>
+                <option value="Nigéria">Nigéria</option>
             </select>
         </div>
 
@@ -148,95 +150,108 @@ let userCountry = 'Côte d\'Ivoire';
 let userCurrency = 'XOF';
 let selectedMethod = '';
 
-// Méthodes de paiement par pays
+// Méthodes de paiement par pays - VERSION COMPLÈTE
 const paymentMethods = {
     "Côte d'Ivoire": {
-        methods: ["Orange Money", "Wave"],
+        methods: ["Orange Money", "Wave", "Moov Money"],
         details: {
             "Orange Money": "Transfert instantané",
-            "Wave": "Transfert instantané"
+            "Wave": "Transfert instantané",
+            "Moov Money": "Transfert instantané"
         }
     },
     "Sénégal": {
-        methods: ["Orange Money", "Wave"],
+        methods: ["Orange Money", "Wave", "Free Money"],
         details: {
             "Orange Money": "Transfert instantané",
-            "Wave": "Transfert instantané"
+            "Wave": "Transfert instantané",
+            "Free Money": "Transfert instantané"
         }
     },
     "Burkina Faso": {
-        methods: ["Orange Money"],
+        methods: ["Orange Money", "Moov Money"],
         details: {
-            "Orange Money": "Transfert instantané"
+            "Orange Money": "Transfert instantané",
+            "Moov Money": "Transfert instantané"
         }
     },
     "Mali": {
-        methods: ["Orange Money"],
+        methods: ["Orange Money", "Moov Money"],
         details: {
-            "Orange Money": "Transfert instantané"
+            "Orange Money": "Transfert instantané",
+            "Moov Money": "Transfert instantané"
         }
     },
     "Niger": {
-        methods: ["Nita"],
+        methods: ["Orange Money", "Moov Money"],
         details: {
-            "Nita": "Transfert instantané"
+            "Orange Money": "Transfert instantané",
+            "Moov Money": "Transfert instantané"
         }
     },
     "Togo": {
-        methods: ["Moov Money"],
+        methods: ["Moov Money", "Togocel"],
         details: {
-            "Moov Money": "Transfert instantané"
-        }
-    },
-    "Nigeria": {
-        methods: ["MTN"],
-        details: {
-            "MTN": "Transfert instantané"
+            "Moov Money": "Transfert instantané",
+            "Togocel": "Transfert instantané"
         }
     },
     "Benin": {
-        methods: ["Moov Money"],
+        methods: ["Moov Money", "MTN Money"],
         details: {
-            "Moov Money": "Transfert instantané"
-        }
-    },
-    "Russie": {
-        methods: ["Sberbank", "Tinkoff"],
-        details: {
-            "Sberbank": "Virement bancaire",
-            "Tinkoff": "Virement bancaire"
+            "Moov Money": "Transfert instantané",
+            "MTN Money": "Transfert instantané"
         }
     },
     "Guinee": {
-        methods: ["Wave"],
+        methods: ["Orange Money", "MTN Money"],
         details: {
-            "Wave": "Transfert instantané"
+            "Orange Money": "Transfert instantané",
+            "MTN Money": "Transfert instantané"
         }
     },
     "Cameroun": {
-        methods: ["Orange Money"],
+        methods: ["Orange Money", "MTN Money"],
         details: {
-            "Orange Money": "Transfert instantané"
+            "Orange Money": "Transfert instantané",
+            "MTN Money": "Transfert instantané"
         }
     },
-     "Gabon": {
-        methods: ["Moov Money"],
+    "Gabon": {
+        methods: ["Airtel Money", "Moov Money"],
         details: {
+            "Airtel Money": "Transfert instantané",
             "Moov Money": "Transfert instantané"
         }
     },
-       "Nigeria": {
-        methods: ["MTN Money"],
+    "Ghana": {
+        methods: ["MTN Mobile Money", "Vodafone Cash"],
         details: {
-            "MTN money": "Transfert instantané"
+            "MTN Mobile Money": "Transfert instantané",
+            "Vodafone Cash": "Transfert instantané"
         }
     },
-    
-
-    "Canada": {
-        methods: ["Interac"],
+    "Nigéria": {
+        methods: ["Paga", "Quickteller"],
         details: {
-            "Mail": "Transfert bancaire"
+            "Paga": "Transfert instantané",
+            "Quickteller": "Transfert instantané"
+        }
+    },
+    "Russie": {
+        methods: ["Sberbank", "Tinkoff", "Alfa-Bank"],
+        details: {
+            "Sberbank": "Virement bancaire",
+            "Tinkoff": "Virement bancaire",
+            "Alfa-Bank": "Virement bancaire"
+        }
+    },
+    "Canada": {
+        methods: ["Interac", "PayPal", "Virement bancaire"],
+        details: {
+            "Interac": "Transfert électronique",
+            "PayPal": "Transfert en ligne",
+            "Virement bancaire": "Virement direct"
         }
     }
 };
@@ -254,17 +269,20 @@ const countryCurrencies = {
     "Niger": "XOF",
     "Togo": "XOF",
     "Benin": "XOF",
-    "Nigeria": "NGN",
-    "Gabon": "XAF"
+    "Gabon": "XAF",
+    "Ghana": "GHS",
+    "Nigéria": "NGN"
 };
 
 // Frais en % selon la devise de l'expéditeur (identique au backend)
 const feesByCurrency = {
     "XOF": 2.5,
     "GNF": 2.5,
-    "RUB": 2.5,
-    "CAD": 2.5,
-    "XAF": 2.5
+    "RUB": 3.0,
+    "CAD": 3.5,
+    "XAF": 2.5,
+    "GHS": 3.0,
+    "NGN": 3.0
 };
 
 // Taux de change (identique au backend)
@@ -274,27 +292,51 @@ const exchangeRates = {
     "XOF,RUB": 0.132,
     "XOF,CAD": 0.0022,
     "XOF,XOF": 1.0,
+    "XOF,GHS": 0.008,
+    "XOF,NGN": 0.7,
 
     "XAF,XOF": 1.1,
     "XAF,GNF": 12.0,
     "XAF,RUB": 0.129,
     "XAF,CAD": 0.0020,
     "XAF,XAF": 1.0,
+    "XAF,GHS": 0.009,
+    "XAF,NGN": 0.8,
 
     "GNF,XOF": 0.077,
     "GNF,RUB": 0.011,
     "GNF,CAD": 0.00017,
     "GNF,GNF": 1.0,
+    "GNF,GHS": 0.0006,
+    "GNF,NGN": 0.05,
 
     "RUB,XOF": 6.6,
     "RUB,GNF": 90.0,
     "RUB,CAD": 0.015,
     "RUB,RUB": 1.0,
+    "RUB,GHS": 0.06,
+    "RUB,NGN": 5.3,
 
     "CAD,XOF": 450.0,
     "CAD,GNF": 6000.0,
     "CAD,RUB": 67.0,
     "CAD,CAD": 1.0,
+    "CAD,GHS": 4.0,
+    "CAD,NGN": 350.0,
+
+    "GHS,XOF": 125.0,
+    "GHS,GNF": 1666.0,
+    "GHS,RUB": 16.7,
+    "GHS,CAD": 0.25,
+    "GHS,GHS": 1.0,
+    "GHS,NGN": 87.5,
+
+    "NGN,XOF": 1.43,
+    "NGN,GNF": 19.0,
+    "NGN,RUB": 0.19,
+    "NGN,CAD": 0.0029,
+    "NGN,GHS": 0.011,
+    "NGN,NGN": 1.0,
 };
 
 // Fonction pour afficher les méthodes de paiement
@@ -328,10 +370,20 @@ function showPaymentMethods(country) {
                     "Orange Money": "#FF6600",
                     "Wave": "#00A859",
                     "Moov Money": "#FF0000",
-                    "Nita": "#0066CC",
+                    "Free Money": "#0000FF",
+                    "MTN Money": "#FFCC00",
+                    "MTN Mobile Money": "#FFCC00",
+                    "Vodafone Cash": "#E60000",
+                    "Airtel Money": "#FF0000",
+                    "Togocel": "#0000FF",
                     "Sberbank": "#1A9F29",
                     "Tinkoff": "#FFDD00",
-                    "Mail": "#0056B3"
+                    "Alfa-Bank": "#EF3124",
+                    "Interac": "#0056B3",
+                    "PayPal": "#003087",
+                    "Virement bancaire": "#666666",
+                    "Paga": "#800080",
+                    "Quickteller": "#FF6600"
                 };
                 
                 methodDiv.innerHTML = `
@@ -443,8 +495,8 @@ async function sendMoney() {
                 recipient_phone: phone, 
                 amount: amount,
                 recipient_country: country,
-                payment_method: paymentMethod,  // ✅ ENVOYER LA MÉTHODE
-                note: `Vers ${country} - ${paymentMethod}`  // ✅ AJOUTER DANS LA NOTE AUSSI
+                payment_method: paymentMethod,
+                note: `Vers ${country} - ${paymentMethod}`
             })
         });
         
