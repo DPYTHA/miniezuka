@@ -805,6 +805,7 @@ def api_transfer():
         ("RUB", "GNF"): 90.0,
         ("RUB", "CAD"): 0.015,
         ("RUB", "RUB"): 1.0,
+        ("RUB", "XAF"): 4.3,
 
         ("CAD", "XOF"): 450.0,
         ("CAD", "GNF"): 6000.0,
