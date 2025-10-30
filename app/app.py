@@ -786,7 +786,7 @@ def api_transfer():
     exchange_rates = {
         ("XOF", "XAF"): 0.85,
         ("XOF", "GNF"): 13.0,
-        ("XOF", "RUB"): 0.14,
+        ("XOF", "RUB"): 0.132,
         ("XOF", "CAD"): 0.0022,
         ("XOF", "XOF"): 1.0,
 

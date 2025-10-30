@@ -98,17 +98,7 @@ body {background: linear-gradient(135deg, #667eea 0%,  #0c2137 100%); min-height
             <label for="recipient_country">Pays du destinataire</label>
             <select id="recipient_country" class="form-control" required>
                 <option value="">Sélectionnez un pays</option>
-                <option value="Côte d'Ivoire">Côte d'Ivoire</option>
-                <option value="Mali">Mali</option>
-                <option value="Burkina Faso">Burkina Faso</option>
-                <option value="Sénégal">Sénégal</option>
-                <option value="Guinee">Guinée</option>
-                <option value="Russie">Russie</option>
-                <option value="Canada">Canada</option>
-                <option value="Cameroun">Cameroun</option>
-                <option value="Niger">Niger</option>
-                <option value="Togo">Togo</option>
-                <option value="Benin">Benin</option>
+                <!-- Les pays seront chargés dynamiquement depuis la base de données -->
             </select>
         </div>
 
@@ -146,8 +136,11 @@ body {background: linear-gradient(135deg, #667eea 0%,  #0c2137 100%); min-height
 let userCountry = 'Côte d\'Ivoire';
 let userCurrency = 'XOF';
 let selectedMethod = '';
+let countryCurrencies = {};
+let feesByCurrency = {};
+let exchangeRates = {};
 
-// Méthodes de paiement par pays
+// Méthodes de paiement par pays (gardé car c'est de la logique métier)
 const paymentMethods = {
     "Côte d'Ivoire": {
         methods: ["Orange Money", "Wave"],
@@ -220,59 +213,139 @@ const paymentMethods = {
     }
 };
 
-// Définition des devises par pays (identique au backend)
-const countryCurrencies = {
-    "Côte d'Ivoire": "XOF",
-    "Mali": "XOF",
-    "Burkina Faso": "XOF",
-    "Sénégal": "XOF",
-    "Guinee": "GNF",
-    "Russie": "RUB",
-    "Canada": "CAD",
-    "Cameroun": "XAF",
-    "Niger": "XOF",
-    "Togo": "XOF",
-    "Benin": "XOF"
-};
+// Fonction pour charger les configurations depuis l'API
+async function loadCurrencyConfig() {
+    try {
+        console.log("Chargement des configurations de devises...");
+        
+        // Charger les pays et devises
+        const countriesRes = await fetch('/admin/api/country_currencies', {
+            credentials: 'include'
+        });
+        if (countriesRes.ok) {
+            const countriesData = await countriesRes.json();
+            countriesData.countries.forEach(country => {
+                if (country.is_active) {
+                    countryCurrencies[country.country_name] = country.currency_code;
+                }
+            });
+            console.log("Pays et devises chargés:", countryCurrencies);
+        }
 
-// Frais en % selon la devise de l'expéditeur (identique au backend)
-const feesByCurrency = {
-    "XOF": 2.5,
-    "GNF": 2.5,
-    "RUB": 2.5,
-    "CAD": 2.5,
-    "XAF": 2.5
-};
+        // Charger les frais
+        const feesRes = await fetch('/admin/api/currency_configs', {
+            credentials: 'include'
+        });
+        if (feesRes.ok) {
+            const feesData = await feesRes.json();
+            feesData.configs.forEach(config => {
+                if (config.is_active) {
+                    feesByCurrency[config.currency_code] = config.transfer_fee_percent;
+                }
+            });
+            console.log("Frais chargés:", feesByCurrency);
+        }
 
-// Taux de change (identique au backend)
-const exchangeRates = {
-    "XOF,XAF": 0.85,
-    "XOF,GNF": 13.0,
-    "XOF,RUB": 0.132,
-    "XOF,CAD": 0.0022,
-    "XOF,XOF": 1.0,
+        // Charger les taux de change
+        const ratesRes = await fetch('/admin/api/exchange_rates', {
+            credentials: 'include'
+        });
+        if (ratesRes.ok) {
+            const ratesData = await ratesRes.json();
+            ratesData.rates.forEach(rate => {
+                if (rate.is_active) {
+                    const key = `${rate.from_currency},${rate.to_currency}`;
+                    exchangeRates[key] = rate.rate;
+                }
+            });
+            console.log("Taux de change chargés:", exchangeRates);
+        }
 
-    "XAF,XOF": 1.1,
-    "XAF,GNF": 12.0,
-    "XAF,RUB": 0.129,
-    "XAF,CAD": 0.0020,
-    "XAF,XAF": 1.0,
+        // Mettre à jour les sélecteurs de pays
+        updateCountrySelectors();
+        
+    } catch (err) {
+        console.error("Erreur lors du chargement des configurations:", err);
+        // Fallback vers les valeurs par défaut en cas d'erreur
+        loadDefaultConfig();
+    }
+}
 
-    "GNF,XOF": 0.077,
-    "GNF,RUB": 0.011,
-    "GNF,CAD": 0.00017,
-    "GNF,GNF": 1.0,
+// Configuration par défaut (fallback)
+function loadDefaultConfig() {
+    countryCurrencies = {
+        "Côte d'Ivoire": "XOF",
+        "Mali": "XOF",
+        "Burkina Faso": "XOF",
+        "Sénégal": "XOF",
+        "Guinee": "GNF",
+        "Russie": "RUB",
+        "Canada": "CAD",
+        "Cameroun": "XAF",
+        "Niger": "XOF",
+        "Togo": "XOF",
+        "Benin": "XOF"
+    };
 
-    "RUB,XOF": 6.6,
-    "RUB,GNF": 90.0,
-    "RUB,CAD": 0.015,
-    "RUB,RUB": 1.0,
+    feesByCurrency = {
+        "XOF": 2.5,
+        "GNF": 2.5,
+        "RUB": 3.0,
+        "CAD": 3.5,
+        "XAF": 2.5
+    };
 
-    "CAD,XOF": 450.0,
-    "CAD,GNF": 6000.0,
-    "CAD,RUB": 67.0,
-    "CAD,CAD": 1.0,
-};
+    exchangeRates = {
+        "XOF,XAF": 0.85,
+        "XOF,GNF": 13.0,
+        "XOF,RUB": 0.132,
+        "XOF,CAD": 0.0022,
+        "XOF,XOF": 1.0,
+        "XAF,XOF": 1.1,
+        "XAF,GNF": 12.0,
+        "XAF,RUB": 0.129,
+        "XAF,CAD": 0.0020,
+        "XAF,XAF": 1.0,
+        "GNF,XOF": 0.077,
+        "GNF,RUB": 0.011,
+        "GNF,CAD": 0.00017,
+        "GNF,GNF": 1.0,
+        "RUB,XOF": 6.6,
+        "RUB,GNF": 90.0,
+        "RUB,CAD": 0.015,
+        "RUB,RUB": 1.0,
+        "CAD,XOF": 450.0,
+        "CAD,GNF": 6000.0,
+        "CAD,RUB": 67.0,
+        "CAD,CAD": 1.0,
+    };
+}
+
+// Mettre à jour les sélecteurs de pays avec les données de la base
+function updateCountrySelectors() {
+    const countrySelect = document.getElementById('recipient_country');
+    
+    // Sauvegarder la valeur sélectionnée
+    const currentValue = countrySelect.value;
+    
+    // Vider les options existantes (garder la première option)
+    while (countrySelect.options.length > 1) {
+        countrySelect.remove(1);
+    }
+    
+    // Ajouter les pays depuis la base de données
+    Object.keys(countryCurrencies).sort().forEach(countryName => {
+        const option = document.createElement('option');
+        option.value = countryName;
+        option.textContent = countryName;
+        countrySelect.appendChild(option);
+    });
+    
+    // Restaurer la sélection si elle existe toujours
+    if (currentValue && countryCurrencies[currentValue]) {
+        countrySelect.value = currentValue;
+    }
+}
 
 // Fonction pour afficher les méthodes de paiement
 function showPaymentMethods(country) {
@@ -357,14 +430,32 @@ function calculateReceivedAmount() {
     const senderCurrency = userCurrency;
     const recipientCurrency = countryCurrencies[recipientCountry] || "XOF";
 
-    // Calcul des frais et conversion (identique au backend)
+    if (!senderCurrency || !recipientCurrency) {
+        document.getElementById('receivedAmount').textContent = 'Configuration manquante';
+        return;
+    }
+
+    // Calcul des frais et conversion
     const feePercent = feesByCurrency[senderCurrency] || 3.5;
     const feeAmount = amount * feePercent / 100;
-    const conversionRate = exchangeRates[`${senderCurrency},${recipientCurrency}`] || 1.0;
-    const receivedAmount = (amount - feeAmount) * conversionRate;
+    
+    // Chercher le taux de change direct ou inverse
+    let conversionRate = exchangeRates[`${senderCurrency},${recipientCurrency}`];
+    if (!conversionRate && senderCurrency !== recipientCurrency) {
+        // Essayer le taux inverse
+        const inverseRate = exchangeRates[`${recipientCurrency},${senderCurrency}`];
+        if (inverseRate) {
+            conversionRate = 1 / inverseRate;
+        } else {
+            conversionRate = 1.0; // Fallback
+        }
+    }
+    
+    const receivedAmount = (amount - feeAmount) * (conversionRate || 1.0);
 
     // Mise à jour de l'affichage
-    document.getElementById('receivedAmount').textContent = receivedAmount.toFixed(2) + ' ' + recipientCurrency;
+    const displayText = receivedAmount.toFixed(2) + ' ' + recipientCurrency;
+    document.getElementById('receivedAmount').textContent = displayText;
     
     updateSendButton();
 }
@@ -510,19 +601,33 @@ async function loadBalance() {
     }
 }
 
-// Événements
-document.getElementById('amount').addEventListener('input', calculateReceivedAmount);
-document.getElementById('recipient_country').addEventListener('change', function() {
-    calculateReceivedAmount();
-    showPaymentMethods(this.value);
-});
-document.getElementById('recipient_phone').addEventListener('input', updateSendButton);
-document.getElementById('sendButton').addEventListener('click', sendMoney);
+// Fonction pour rafraîchir les configurations (utile si l'admin les modifie)
+async function refreshConfig() {
+    console.log("Rafraîchissement des configurations...");
+    await loadCurrencyConfig();
+    calculateReceivedAmount(); // Recalculer avec les nouvelles données
+}
 
 // Chargement initial au démarrage
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     console.log("DOM chargé, initialisation...");
-    loadBalance();
+    
+    // Charger d'abord les configurations
+    await loadCurrencyConfig();
+    
+    // Ensuite charger le solde utilisateur
+    await loadBalance();
+    
+    // Événements
+    document.getElementById('amount').addEventListener('input', calculateReceivedAmount);
+    document.getElementById('recipient_country').addEventListener('change', function() {
+        calculateReceivedAmount();
+        showPaymentMethods(this.value);
+    });
+    document.getElementById('recipient_phone').addEventListener('input', updateSendButton);
+    document.getElementById('sendButton').addEventListener('click', sendMoney);
+    
+    console.log("Initialisation terminée");
 });
 </script>
 </body>
