@@ -1,17 +1,16 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+<meta charset="UTF-8">
+  <!-- VIEWPORT CORRIGÉ - EMPÊCHE LE ZOOM AUTOMATIQUE -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   
   <!-- Titre de l'onglet -->
   <title>ÉZUKA - Transferts d'argent rapides</title>
 
-  <!-- Favicon et icônes CORRIGÉES -->
+  <!-- Favicon et icônes -->
   <link rel="icon" type="image/png" href="/static/logo.png">
   <link rel="shortcut icon" href="/static/logo.png">
   <link rel="apple-touch-icon" href="/static/logo.png">
@@ -20,7 +19,7 @@
   <link rel="manifest" href="/static/manifest.json">
   <meta name="theme-color" content="#082630">
 
-  <!-- Open Graph / Facebook - CORRIGÉ avec votre domaine -->
+  <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://www.ezuka.net/" />
   <meta property="og:title" content="ÉZUKA - Transferts d'argent rapides" />
@@ -29,7 +28,7 @@
   <meta property="og:image:width" content="512" />
   <meta property="og:image:height" content="512" />
 
-  <!-- Twitter - CORRIGÉ -->
+  <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:url" content="https://www.ezuka.net/" />
   <meta name="twitter:title" content="ÉZUKA - Transferts d'argent rapides" />
@@ -38,12 +37,33 @@
 
   <!-- Police -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
-  <meta name="twitter:image" content="https://i.postimg.cc/bw4C62zX/logo.png" />
+  
   <title>Connexion</title>
   <style>
+    /* EMPÊCHE LE ZOOM SUR LES CHAMPS INPUT SUR iOS */
+    input, select, textarea {
+      font-size: 16px !important;
+    }
+    
+    /* Styles pour éviter le zoom sur focus */
+    @media screen and (max-width: 768px) {
+      input[type="text"],
+      input[type="password"],
+      input[type="email"],
+      input[type="tel"],
+      input[type="number"] {
+        font-size: 16px !important;
+        transform: scale(1);
+      }
+    }
+
     body {
       background: #f7faff;
       font-family: "Poppins", sans-serif;
+      /* Empêche le zoom sur le body */
+      touch-action: pan-y;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
     }
 
     .container {
@@ -58,7 +78,7 @@
 
     h2 {
       text-align: center;
-      color: #1e3a8a; /* Bleu profond */
+      color: #1e3a8a;
       margin-bottom: 25px;
       font-size: 1.6rem;
     }
@@ -73,18 +93,23 @@
       padding: 12px 15px;
       border: 1px solid #d1d5db;
       border-radius: 10px;
-      font-size: 15px;
+      font-size: 16px; /* Taille fixe pour éviter le zoom */
       outline: none;
       transition: all 0.3s ease;
+      /* Propriétés pour éviter le zoom */
+      -webkit-appearance: none;
+      appearance: none;
     }
 
     .form input:focus {
       border-color: #2563eb;
       box-shadow: 0 0 5px rgba(37, 99, 235, 0.3);
+      /* Empêche les transformations de zoom */
+      transform: none !important;
     }
 
     .btn.primary {
-      background:  #1e293b;
+      background: #1e293b;
       color: #fff;
       border: none;
       padding: 12px;
@@ -112,6 +137,23 @@
 
     p a:hover {
       text-decoration: underline;
+    }
+
+    /* Media query pour mobile */
+    @media screen and (max-width: 480px) {
+      .container {
+        margin: 40px auto;
+        padding: 20px;
+        border-radius: 15px;
+      }
+      
+      h2 {
+        font-size: 1.4rem;
+      }
+      
+      .form input {
+        padding: 14px 15px; /* Plus grand pour faciliter le tap */
+      }
     }
   </style>
 </head>
