@@ -181,4 +181,183 @@
     <!-- <img src="/static/telegram-logo.png" alt="Contact Telegram" class="telegram-icon"> -->
   </a>
 </body>
+</html><!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  
+  <title>ÉZUKA - Transferts d'argent rapides</title>
+
+  <!-- Favicon et icônes -->
+  <link rel="icon" type="image/png" href="/static/logo.png">
+  <link rel="shortcut icon" href="/static/logo.png">
+  <link rel="apple-touch-icon" href="/static/logo.png">
+  
+  <!-- Manifest -->
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#082630">
+
+  <!-- Police -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+
+  <title>Inscription</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f6fa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h2 {
+      color: #0d1924;
+    }
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 300px;
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .form input, .form select {
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .btn {
+      background: #0c2137;
+      color: white;
+      border: none;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .btn:hover {
+      background: #0056b3;
+    }
+    p {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #333;
+    }
+    a {
+      color: #007bff;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Icône Telegram flottante - SVG */
+    .telegram-float {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        background-color: #0088cc;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 136, 204, 0.3);
+        z-index: 1000;
+        transition: all 0.3s ease;
+        animation: pulse 2s infinite;
+        text-decoration: none;
+    }
+
+    .telegram-float:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(0, 136, 204, 0.5);
+    }
+
+    .telegram-svg {
+        width: 28px;
+        height: 28px;
+        fill: white;
+    }
+
+    /* Animation de pulsation */
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(0, 136, 204, 0.7);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(0, 136, 204, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(0, 136, 204, 0);
+        }
+    }
+
+    /* Version mobile */
+    @media (max-width: 768px) {
+        .telegram-float {
+            width: 50px;
+            height: 50px;
+            bottom: 15px;
+            right: 15px;
+        }
+        
+        .telegram-svg {
+            width: 24px;
+            height: 24px;
+        }
+    }
+  </style>
+</head>
+<body>
+  <h2>Créer un compte</h2>
+
+  <form method="POST" action="/register" class="form">
+    <input name="first_name" placeholder="Prénom" required>
+    <input name="last_name" placeholder="Nom" required>
+    <input name="phone" placeholder="Numéro (ex: +225...)" required>
+
+    <select name="country" required>
+      <option value="">-- Sélectionnez votre pays --</option>
+      <option value="Côte d'Ivoire">Côte d'Ivoire</option>
+      <option value="Mali">Mali</option>
+      <option value="Burkina Faso">Burkina Faso</option>
+      <option value="Sénégal">Sénégal</option>
+      <option value="Ghana">Ghana</option>
+      <option value="Togo">Togo</option>
+      <option value="Bénin">Bénin</option>
+      <option value="Nigéria">Nigéria</option>
+      <option value="Russie">Russie</option>
+      <option value="Guinee">Guinee</option>
+      <option value="Cameroun">Cameroun</option>
+      <option value="Canada">Canada</option>
+      <option value="Gabon">Gabon</option>
+    </select>
+
+    <input name="password" type="password" placeholder="Mot de passe" minlength="6" required>
+    
+    <button type="submit" class="btn">S'inscrire</button>
+  </form>
+
+  <p>Déjà membre ? 
+    <a href="/login">Se connecter</a>
+  </p>
+
+ <!-- Alternative SVG Telegram -->
+<a href="https://t.me/EzukaTransfBot" target="_blank" class="telegram-float">
+    <svg class="telegram-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.78 5.42-.92 6.8-.06.67-.36.89-.84.56-2.33-1.72-3.98-2.79-6.45-4.47-.29-.23-.5-.35-.48-.54.03-.19.27-.2.5-.29.85-.32 2.86-.98 3.76-1.27.96-.31 1.25.16 1.27 1.07.02.65.14 2.06.23 3.1.04.52.15.7.35.73.25.04.49-.16.97-.62 1.37-1.25 2.3-2.5 3.44-4.09.19-.27.35-.31.58-.28.23.03.66.31.38.93-.28.62-1.72 2.49-2.13 2.99-.39.49-.56.74.02 1.26.41.37 2.91 2.67 3.37 3.14.52.53.9.77 1.32.79.35.02.8-.16 1.05-.59.26-.43.26-.8.18-.92-.07-.12-.26-.2-.55-.35-1.47-.74-3.05-1.52-3.81-1.88-.89-.42-.64-.65.45-1.99.78-.95 1.85-2.36 1.85-2.36s.42-.63.76-.61c.18.01.57.13.57.13s1.61.69 2.79 1.34c.33.18.56.17.65.16.22-.03.43-.17.48-.26.05-.09.05-.2.03-.28-.02-.08-.23-.57-.89-1.3-.75-.79-1.7-1.32-2.04-1.5-.54-.28-.93-.23-1.29-.14-.73.18-2.17.63-3.43 1.01-1.26.38-2.32.57-2.55.6-.52.07-.89-.11-.9-.34-.01-.24.33-.5.91-.76z"/>
+    </svg>
+</a>
+</body>
 </html>
