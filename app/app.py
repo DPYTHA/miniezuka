@@ -102,6 +102,7 @@ def create_admin():
             
     except Exception as e:
         print(f"⚠️ Erreur lors de la création de l'admin: {e}")
+        db.session.rollback()  # IMPORTANT: Rollback en cas d'erreur
         print("🔧 Tentative de mise à jour du schéma...")
         update_database_schema()
         
