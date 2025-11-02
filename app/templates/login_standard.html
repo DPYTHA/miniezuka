@@ -1,178 +1,240 @@
 <!DOCTYPE html>
 <html lang="fr">
   <head>
-<meta charset="UTF-8">
-  <!-- VIEWPORT CORRIGÉ - EMPÊCHE LE ZOOM AUTOMATIQUE -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-  
-  <!-- Titre de l'onglet -->
-  <title>ÉZUKA - Transferts d'argent rapides</title>
-
-  <!-- Favicon et icônes -->
-  <link rel="icon" type="image/png" href="/static/logo.png">
-  <link rel="shortcut icon" href="/static/logo.png">
-  <link rel="apple-touch-icon" href="/static/logo.png">
-  
-  <!-- Manifest -->
-  <link rel="manifest" href="/static/manifest.json">
-  <meta name="theme-color" content="#082630">
-
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://www.ezuka.net/" />
-  <meta property="og:title" content="ÉZUKA - Transferts d'argent rapides" />
-  <meta property="og:description" content="Faites vos transferts d'argent facilement et en toute sécurité avec ÉZUKA." />
-  <meta property="og:image" content="https://www.ezuka.net/static/logo.png" />
-  <meta property="og:image:width" content="512" />
-  <meta property="og:image:height" content="512" />
-
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:url" content="https://www.ezuka.net/" />
-  <meta name="twitter:title" content="ÉZUKA - Transferts d'argent rapides" />
-  <meta name="twitter:description" content="Faites vos transferts d'argent facilement et en toute sécurité avec ÉZUKA." />
-  <meta name="twitter:image" content="https://www.ezuka.net/static/logo.png" />
-
-  <!-- Police -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
-  
-  <title>Connexion</title>
-  <style>
-    /* EMPÊCHE LE ZOOM SUR LES CHAMPS INPUT SUR iOS */
-    input, select, textarea {
-      font-size: 16px !important;
-    }
+    <meta charset="UTF-8">
+    <!-- VIEWPORT CORRIGÉ - EMPÊCHE LE ZOOM AUTOMATIQUE -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     
-    /* Styles pour éviter le zoom sur focus */
-    @media screen and (max-width: 768px) {
-      input[type="text"],
-      input[type="password"],
-      input[type="email"],
-      input[type="tel"],
-      input[type="number"] {
+    <!-- Titre de l'onglet -->
+    <title>ÉZUKA - Transferts d'argent rapides</title>
+
+    <!-- Favicon et icônes -->
+    <link rel="icon" type="image/png" href="/static/logo.png">
+    <link rel="shortcut icon" href="/static/logo.png">
+    <link rel="apple-touch-icon" href="/static/logo.png">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#082630">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.ezuka.net/" />
+    <meta property="og:title" content="ÉZUKA - Transferts d'argent rapides" />
+    <meta property="og:description" content="Faites vos transferts d'argent facilement et en toute sécurité avec ÉZUKA." />
+    <meta property="og:image" content="https://www.ezuka.net/static/logo.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://www.ezuka.net/" />
+    <meta name="twitter:title" content="ÉZUKA - Transferts d'argent rapides" />
+    <meta name="twitter:description" content="Faites vos transferts d'argent facilement et en toute sécurité avec ÉZUKA." />
+    <meta name="twitter:image" content="https://www.ezuka.net/static/logo.png" />
+
+    <!-- Police -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+    
+    <title>Connexion</title>
+    <style>
+      /* EMPÊCHE LE ZOOM SUR LES CHAMPS INPUT SUR iOS */
+      input, select, textarea {
         font-size: 16px !important;
-        transform: scale(1);
       }
-    }
+      
+      /* Styles pour éviter le zoom sur focus */
+      @media screen and (max-width: 768px) {
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="number"] {
+          font-size: 16px !important;
+          transform: scale(1);
+        }
+      }
 
-    body {
-      background: #f7faff;
-      font-family: "Poppins", sans-serif;
-      /* Empêche le zoom sur le body */
-      touch-action: pan-y;
-      -webkit-text-size-adjust: 100%;
-      text-size-adjust: 100%;
-    }
+      body {
+        background: #f7faff;
+        font-family: "Poppins", sans-serif;
+        /* Empêche le zoom sur le body */
+        touch-action: pan-y;
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+      }
 
-    .container {
-      width: 100%;
-      max-width: 400px;
-      margin: 80px auto;
-      background: #fff;
-      padding: 30px;
-      border-radius: 20px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    h2 {
-      text-align: center;
-      color: #1e3a8a;
-      margin-bottom: 25px;
-      font-size: 1.6rem;
-    }
-
-    .form {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .form input {
-      padding: 12px 15px;
-      border: 1px solid #d1d5db;
-      border-radius: 10px;
-      font-size: 16px; /* Taille fixe pour éviter le zoom */
-      outline: none;
-      transition: all 0.3s ease;
-      /* Propriétés pour éviter le zoom */
-      -webkit-appearance: none;
-      appearance: none;
-    }
-
-    .form input:focus {
-      border-color: #2563eb;
-      box-shadow: 0 0 5px rgba(37, 99, 235, 0.3);
-      /* Empêche les transformations de zoom */
-      transform: none !important;
-    }
-
-    .btn.primary {
-      background: #1e293b;
-      color: #fff;
-      border: none;
-      padding: 12px;
-      border-radius: 10px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    .btn.primary:hover {
-      background: #1e3a8a;
-    }
-
-    p {
-      text-align: center;
-      font-size: 14px;
-      color: #4b5563;
-    }
-
-    p a {
-      color: #2563eb;
-      font-weight: 500;
-      text-decoration: none;
-    }
-
-    p a:hover {
-      text-decoration: underline;
-    }
-
-    /* Media query pour mobile */
-    @media screen and (max-width: 480px) {
       .container {
-        margin: 40px auto;
-        padding: 20px;
-        border-radius: 15px;
+        width: 100%;
+        max-width: 400px;
+        margin: 80px auto;
+        background: #fff;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       }
-      
+
       h2 {
-        font-size: 1.4rem;
+        text-align: center;
+        color: #1e3a8a;
+        margin-bottom: 25px;
+        font-size: 1.6rem;
       }
-      
+
+      .form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
       .form input {
-        padding: 14px 15px; /* Plus grand pour faciliter le tap */
+        padding: 12px 15px;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        font-size: 16px; /* Taille fixe pour éviter le zoom */
+        outline: none;
+        transition: all 0.3s ease;
+        /* Propriétés pour éviter le zoom */
+        -webkit-appearance: none;
+        appearance: none;
       }
-    }
-  </style>
-</head>
-<body>
 
-  <div class="container">
-    <h2>Connexion</h2>
+      .form input:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 5px rgba(37, 99, 235, 0.3);
+        /* Empêche les transformations de zoom */
+        transform: none !important;
+      }
 
-    <!-- Lien du formulaire -->
-    <form method="POST" action="/login" class="form">
-      <input type="text" name="phone" placeholder="Numéro (ex: +225...)" required>
-      <input type="password" name="password" placeholder="Mot de passe" required>
-      <button type="submit" class="btn primary">Se connecter</button>
-    </form>
+      .btn.primary {
+        background: #1e293b;
+        color: #fff;
+        border: none;
+        padding: 12px;
+        border-radius: 10px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+      }
 
-    <p>
-      Nouveau ici ? <a href="/register">Créer un compte</a>
-    </p>
-  </div>
+      .btn.primary:hover {
+        background: #1e3a8a;
+      }
 
-</body>
+      p {
+        text-align: center;
+        font-size: 14px;
+        color: #4b5563;
+      }
+
+      p a {
+        color: #2563eb;
+        font-weight: 500;
+        text-decoration: none;
+      }
+
+      p a:hover {
+        text-decoration: underline;
+      }
+
+      /* Icône Telegram flottante - IDENTIQUE À LA PAGE D'INSCRIPTION */
+      .telegram-float {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          width: 60px;
+          height: 60px;
+          background-color: #0088cc;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 12px rgba(0, 136, 204, 0.3);
+          z-index: 1000;
+          transition: all 0.3s ease;
+          animation: pulse 2s infinite;
+          text-decoration: none;
+      }
+
+      .telegram-float:hover {
+          transform: scale(1.1);
+          box-shadow: 0 6px 20px rgba(0, 136, 204, 0.5);
+      }
+
+      .telegram-svg {
+          width: 28px;
+          height: 28px;
+          fill: white;
+      }
+
+      /* Animation de pulsation */
+      @keyframes pulse {
+          0% {
+              box-shadow: 0 0 0 0 rgba(0, 136, 204, 0.7);
+          }
+          70% {
+              box-shadow: 0 0 0 10px rgba(0, 136, 204, 0);
+          }
+          100% {
+              box-shadow: 0 0 0 0 rgba(0, 136, 204, 0);
+          }
+      }
+
+      /* Version mobile */
+      @media screen and (max-width: 768px) {
+          .telegram-float {
+              width: 50px;
+              height: 50px;
+              bottom: 15px;
+              right: 15px;
+          }
+          
+          .telegram-svg {
+              width: 24px;
+              height: 24px;
+          }
+          
+          .container {
+            margin: 40px auto;
+            padding: 20px;
+            border-radius: 15px;
+          }
+          
+          h2 {
+            font-size: 1.4rem;
+          }
+          
+          .form input {
+            padding: 14px 15px; /* Plus grand pour faciliter le tap */
+          }
+      }
+    </style>
+  </head>
+  <body>
+
+    <div class="container">
+      <h2>Connexion</h2>
+
+      <!-- Lien du formulaire -->
+      <form method="POST" action="/login" class="form">
+        <input type="text" name="phone" placeholder="Numéro (ex: +225...)" required>
+        <input type="password" name="password" placeholder="Mot de passe" required>
+        <button type="submit" class="btn primary">Se connecter</button>
+      </form>
+
+      <p>
+        Nouveau ici ? <a href="/register">Créer un compte</a>
+      </p>
+    </div>
+
+    <!-- Icône Telegram SVG identique à la page d'inscription -->
+    <a href="https://t.me/EzukaTransfBot" target="_blank" class="telegram-float">
+      <svg class="telegram-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.191c-.175.761-.932 3.513-1.316 4.74-.193.623-.575 1.083-1.028 1.108-.535.029-.788-.354-1.222-.693-.678-.532-1.062-.863-1.72-1.384-.943-.75-.332-1.161.207-1.832.142-.177 2.591-2.368 2.637-2.57.006-.025.011-.116-.043-.165-.054-.05-.134-.033-.192-.02-.082.02-1.398.887-3.948 2.604-.373.255-.712.38-1.016.374-.334-.006-.976-.188-1.454-.343-.586-.19-1.051-.29-1.01-.613.021-.165.25-.333.688-.508 2.463-1.017 4.114-1.692 4.953-2.026 2.33-.924 2.813-1.085 3.128-1.087.071 0 .227.016.329.095.087.068.111.167.122.244.011.073.024.239.013.368z"/>
+      </svg>
+    </a>
+
+  </body>
 </html>

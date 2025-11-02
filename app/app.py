@@ -69,6 +69,7 @@ class User(db.Model):
 
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     is_admin = db.Column(db.Boolean, default=False)  # <-- nouveau champ pour admin
+    pin_expires = db.Column(db.DateTime, nullable=True)  # pour reprendre votre pin
 
     deposits = db.relationship("Deposit", backref="user", lazy=True)
     transfers = db.relationship("Transfer", backref="user", lazy=True)
@@ -2332,6 +2333,62 @@ def admin_fees_management():
 
 
 
+@app.route("/forgot_pin", methods=["GET", "POST"])
+def forgot_pin():
+    if request.method == "GET":
+        return send_from_directory(TEMPLATES_DIR, "forgot_pin.html")
+    
+    # POST - Traitement de la récupération
+    phone = request.form.get("phone", "").strip()
+    
+    if not phone:
+        return "Numéro requis", 400
+    
+    # Rechercher l'utilisateur
+    user = User.query.filter_by(phone=phone).first()
+    if not user:
+        return "Numéro non trouvé", 404
+    
+    if not user.pin_hash:
+        return "Aucun PIN enregistré pour ce compte", 400
+    
+    # Envoyer le PIN via Telegram
+    try:
+        # Récupérer le chat_id de l'utilisateur (vous devrez peut-être adapter cette partie)
+        # Pour l'instant, on envoie à l'admin
+        chat_id = get_telegram_chat_id()
+        
+        if chat_id:
+            message = f"""
+🔐 RÉCUPÉRATION DE PIN ÉZUKA
+
+📞 Numéro: {phone}
+👤 Utilisateur: {user.first_name} {user.last_name}
+🌍 Pays: {user.country}
+
+📝 Demande de récupération de PIN reçue.
+
+⚠️ Pour des raisons de sécurité, le PIN ne peut pas être envoyé par message.
+Veuillez contacter le support pour réinitialiser votre PIN.
+
+⏰ Date: {datetime.now().strftime("%d/%m/%Y %H:%M")}
+            """
+            
+            # Envoyer la notification
+            send_telegram_message_auto(message)
+            
+            return """
+            <script>
+                alert('Demande de récupération envoyée. Le support vous contactera sur Telegram.');
+                window.location.href = '/login_pin';
+            </script>
+            """
+        else:
+            return "Erreur: Chat ID Telegram non configuré", 500
+            
+    except Exception as e:
+        print(f"❌ Erreur récupération PIN: {e}")
+        return "Erreur lors de l'envoi de la demande", 500
 # -------------------- Run --------------------
 
 # -------------------- Initialisation automatique --------------------

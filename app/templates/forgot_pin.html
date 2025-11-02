@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  
+  <!-- Titre de l'onglet -->
+  <title>ÉZUKA - Récupération de PIN</title>
+
+  <!-- Favicon et icônes CORRIGÉES -->
+  <link rel="icon" type="image/png" href="/static/logo.png">
+  <link rel="shortcut icon" href="/static/logo.png">
+  <link rel="apple-touch-icon" href="/static/logo.png">
+  
+  <!-- Manifest -->
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#082630">
+
+  <!-- Police -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+  
+  <title>Récupération de PIN</title>
+  <style>
+    body { 
+        background-color: #0f172a; 
+        font-family: "Poppins", sans-serif; 
+        text-align: center; 
+        padding-top: 80px;
+        color: white;
+    }
+    
+    .container {
+        max-width: 400px;
+        margin: 0 auto;
+        background: #1e293b;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    
+    h2 { 
+        color: #3b82f6; 
+        font-size: 1.5rem; 
+        margin-bottom: 20px; 
+    }
+    
+    .description {
+        color: #94a3b8;
+        margin-bottom: 25px;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+        text-align: left;
+    }
+    
+    label {
+        display: block;
+        margin-bottom: 8px;
+        color: #cbd5e1;
+        font-weight: 500;
+    }
+    
+    input[type="text"] {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #334155;
+        border-radius: 10px;
+        background: #0f172a;
+        color: white;
+        font-size: 16px;
+        box-sizing: border-box;
+    }
+    
+    input[type="text"]:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
+    }
+    
+    .btn {
+        width: 100%;
+        padding: 12px;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+        margin-bottom: 15px;
+    }
+    
+    .btn:hover {
+        background: #2563eb;
+    }
+    
+    .btn-secondary {
+        background: #64748b;
+    }
+    
+    .btn-secondary:hover {
+        background: #475569;
+    }
+    
+    .alert {
+        background: #1e40af;
+        color: white;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        text-align: left;
+    }
+    
+    .alert-icon {
+        font-size: 20px;
+        margin-right: 10px;
+    }
+
+    /* Icône Telegram flottante */
+    .telegram-float {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        background: #0088cc;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 136, 204, 0.3);
+        z-index: 1000;
+        transition: all 0.3s ease;
+        animation: pulse 2s infinite;
+        text-decoration: none;
+    }
+
+    .telegram-float:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(0, 136, 204, 0.5);
+    }
+
+    .telegram-svg {
+        width: 28px;
+        height: 28px;
+        fill: white;
+    }
+
+    /* Animation de pulsation */
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(0, 136, 204, 0.7);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(0, 136, 204, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(0, 136, 204, 0);
+        }
+    }
+
+    /* Version mobile */
+    @media (max-width: 768px) {
+        .container {
+            margin: 20px;
+            padding: 20px;
+        }
+        
+        .telegram-float {
+            width: 50px;
+            height: 50px;
+            bottom: 15px;
+            right: 15px;
+        }
+        
+        .telegram-svg {
+            width: 24px;
+            height: 24px;
+        }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🔐 Récupération de PIN</h2>
+    
+    <div class="alert">
+        <span class="alert-icon">⚠️</span>
+        <strong>Mot de passe oublié ?</strong><br>
+        Entrez votre numéro de téléphone pour recevoir de l'aide via Telegram.
+    </div>
+    
+    <div class="description">
+        Nous enverrons une notification à notre support qui vous contactera sur Telegram pour vous aider à récupérer votre accès.
+    </div>
+
+    <form method="POST" action="/forgot_pin">
+        <div class="form-group">
+            <label for="phone">Votre numéro de téléphone :</label>
+            <input type="text" id="phone" name="phone" placeholder="Ex: +2250102030405" required>
+        </div>
+        
+        <button type="submit" class="btn">Envoyer la demande</button>
+        <a href="/login_pin" class="btn btn-secondary">Retour à la connexion</a>
+    </form>
+</div>
+
+<!-- Icône Telegram SVG -->
+<a href="https://t.me/EzukaTransfBot" target="_blank" class="telegram-float">
+    <svg class="telegram-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.191c-.175.761-.932 3.513-1.316 4.74-.193.623-.575 1.083-1.028 1.108-.535.029-.788-.354-1.222-.693-.678-.532-1.062-.863-1.72-1.384-.943-.75-.332-1.161.207-1.832.142-.177 2.591-2.368 2.637-2.57.006-.025.011-.116-.043-.165-.054-.05-.134-.033-.192-.02-.082.02-1.398.887-3.948 2.604-.373.255-.712.38-1.016.374-.334-.006-.976-.188-1.454-.343-.586-.19-1.051-.29-1.01-.613.021-.165.25-.333.688-.508 2.463-1.017 4.114-1.692 4.953-2.026 2.33-.924 2.813-1.085 3.128-1.087.071 0 .227.016.329.095.087.068.111.167.122.244.011.073.024.239.013.368z"/>
+    </svg>
+</a>
+
+</body>
+</html>
