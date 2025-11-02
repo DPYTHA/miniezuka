@@ -78,24 +78,53 @@ class User(db.Model):
 
 def create_admin():
     admin_phone = "+79879040719"
-    existing_admin = User.query.filter_by(phone=admin_phone).first()
+    
+    try:
+        existing_admin = User.query.filter_by(phone=admin_phone).first()
 
-    if existing_admin:
-        print("✅ Admin déjà existant :", existing_admin.phone)
-    else:
-        admin = User(
-            first_name="Admin",
-            last_name="Principal",
-            phone=admin_phone,
-            country="Russie",
-            password_hash=generate_password_hash("admin123"),
-            pin_hash=generate_password_hash("3008"),
-            balance=0.0,
-            is_admin=True
-        )
-        db.session.add(admin)
-        db.session.commit()
-        print("🎉 Admin créé avec succès :", admin.phone)
+        if existing_admin:
+            print("✅ Admin déjà existant :", existing_admin.phone)
+        else:
+            admin = User(
+                first_name="Admin",
+                last_name="Principal",
+                phone=admin_phone,
+                country="Russie",
+                password_hash=generate_password_hash("admin123"),
+                pin_hash=generate_password_hash("3008"),
+                balance=0.0,
+                is_admin=True,
+                pin_expires=None  # ← Ajoutez cette ligne
+            )
+            db.session.add(admin)
+            db.session.commit()
+            print("🎉 Admin créé avec succès :", admin.phone)
+            
+    except Exception as e:
+        print(f"⚠️ Erreur lors de la création de l'admin: {e}")
+        print("🔧 Tentative de mise à jour du schéma...")
+        update_database_schema()
+        
+        # Réessayer après mise à jour du schéma
+        try:
+            existing_admin = User.query.filter_by(phone=admin_phone).first()
+            if not existing_admin:
+                admin = User(
+                    first_name="Admin",
+                    last_name="Principal", 
+                    phone=admin_phone,
+                    country="Russie",
+                    password_hash=generate_password_hash("admin123"),
+                    pin_hash=generate_password_hash("3008"),
+                    balance=0.0,
+                    is_admin=True,
+                    pin_expires=None
+                )
+                db.session.add(admin)
+                db.session.commit()
+                print("🎉 Admin créé avec succès après mise à jour du schéma")
+        except Exception as e2:
+            print(f"❌ Échec création admin même après mise à jour: {e2}")
 
 
 
@@ -346,6 +375,31 @@ def get_exchange_rate(from_currency: str, to_currency: str) -> float:
     
     return rate.rate if rate else 1.0  # Default
 #initialisons notre Bot
+def update_database_schema():
+    """Met à jour le schéma de la base de données avec les nouvelles colonnes"""
+    with app.app_context():
+        try:
+            # Vérifier si la colonne pin_expires existe déjà
+            from sqlalchemy import text
+            
+            # Pour PostgreSQL
+            result = db.session.execute(text("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name='users' AND column_name='pin_expires'
+            """))
+            
+            if not result.fetchone():
+                print("🔄 Ajout de la colonne pin_expires à la table users...")
+                db.session.execute(text("ALTER TABLE users ADD COLUMN pin_expires TIMESTAMP"))
+                db.session.commit()
+                print("✅ Colonne pin_expires ajoutée avec succès")
+            else:
+                print("✅ Colonne pin_expires existe déjà")
+                
+        except Exception as e:
+            print(f"❌ Erreur lors de la mise à jour du schéma: {e}")
+            db.session.rollback()
 
 
 # -------------------- Helpers --------------------
