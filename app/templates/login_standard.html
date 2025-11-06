@@ -65,48 +65,59 @@
         touch-action: pan-y;
         -webkit-text-size-adjust: 100%;
         text-size-adjust: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
       }
 
       .container {
         width: 100%;
         max-width: 400px;
-        margin: 80px auto;
         background: #fff;
-        padding: 30px;
+        padding: 40px 30px;
         border-radius: 20px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
       }
 
       h2 {
         text-align: center;
         color: #1e3a8a;
-        margin-bottom: 25px;
+        margin-bottom: 30px;
         font-size: 1.6rem;
+        width: 100%;
       }
 
       .form {
         display: flex;
         flex-direction: column;
-        gap: 15px;
-        width: 300px;
+        gap: 20px;
+        width: 100%;
+        max-width: 300px;
       }
 
       .form input {
-        padding: 12px 15px;
+        padding: 14px 15px;
         border: 1px solid #d1d5db;
         border-radius: 10px;
-        font-size: 16px; /* Taille fixe pour éviter le zoom */
+        font-size: 16px;
         outline: none;
         transition: all 0.3s ease;
-        /* Propriétés pour éviter le zoom */
         -webkit-appearance: none;
         appearance: none;
+        width: 100%;
+        box-sizing: border-box;
       }
 
       .form input:focus {
         border-color: #2563eb;
         box-shadow: 0 0 5px rgba(37, 99, 235, 0.3);
-        /* Empêche les transformations de zoom */
         transform: none !important;
       }
 
@@ -114,11 +125,14 @@
         background: #1e293b;
         color: #fff;
         border: none;
-        padding: 12px;
+        padding: 14px;
         border-radius: 10px;
         font-size: 16px;
         cursor: pointer;
         transition: background 0.3s ease;
+        width: 100%;
+        font-weight: 600;
+        margin-top: 10px;
       }
 
       .btn.primary:hover {
@@ -129,6 +143,8 @@
         text-align: center;
         font-size: 14px;
         color: #4b5563;
+        margin-top: 25px;
+        width: 100%;
       }
 
       p a {
@@ -141,7 +157,7 @@
         text-decoration: underline;
       }
 
-      /* Icône Telegram flottante - IDENTIQUE À LA PAGE D'INSCRIPTION */
+      /* Icône Telegram flottante */
       .telegram-float {
           position: fixed;
           bottom: 20px;
@@ -199,17 +215,39 @@
           }
           
           .container {
-            margin: 40px auto;
-            padding: 20px;
+            padding: 30px 20px;
             border-radius: 15px;
+            margin: 0;
           }
           
           h2 {
             font-size: 1.4rem;
+            margin-bottom: 25px;
+          }
+          
+          .form {
+            gap: 15px;
           }
           
           .form input {
-            padding: 14px 15px; /* Plus grand pour faciliter le tap */
+            padding: 16px 15px;
+          }
+          
+          body {
+            padding: 15px;
+            justify-content: flex-start;
+            padding-top: 60px;
+          }
+      }
+
+      /* Pour les très petits écrans */
+      @media screen and (max-width: 360px) {
+          .container {
+            padding: 25px 15px;
+          }
+          
+          .form {
+            max-width: 100%;
           }
       }
     </style>
@@ -219,7 +257,7 @@
     <div class="container">
       <h2>Connexion</h2>
 
-      <!-- Lien du formulaire -->
+      <!-- Formulaire parfaitement centré -->
       <form method="POST" action="/login" class="form">
         <input type="text" name="phone" placeholder="Numéro (ex: +225...)" required>
         <input type="password" name="password" placeholder="Mot de passe" required>
@@ -231,7 +269,7 @@
       </p>
     </div>
 
-    <!-- Icône Telegram SVG identique à la page d'inscription -->
+    <!-- Icône Telegram SVG -->
     <a href="https://t.me/EzukaTransfBot" target="_blank" class="telegram-float">
       <svg class="telegram-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.191c-.175.761-.932 3.513-1.316 4.74-.193.623-.575 1.083-1.028 1.108-.535.029-.788-.354-1.222-.693-.678-.532-1.062-.863-1.72-1.384-.943-.75-.332-1.161.207-1.832.142-.177 2.591-2.368 2.637-2.57.006-.025.011-.116-.043-.165-.054-.05-.134-.033-.192-.02-.082.02-1.398.887-3.948 2.604-.373.255-.712.38-1.016.374-.334-.006-.976-.188-1.454-.343-.586-.19-1.051-.29-1.01-.613.021-.165.25-.333.688-.508 2.463-1.017 4.114-1.692 4.953-2.026 2.33-.924 2.813-1.085 3.128-1.087.071 0 .227.016.329.095.087.068.111.167.122.244.011.073.024.239.013.368z"/>

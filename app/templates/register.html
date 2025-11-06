@@ -317,7 +317,7 @@
       window.location.href = '/login';
     }
 
-    // Redirection automatique après 5 secondes (optionnel)
+    // Redirection automatique après 15 secondes (optionnel)
     let autoRedirectTimer;
     
     // Démarrer la redirection automatique quand le modal s'affiche
@@ -329,7 +329,7 @@
             // Démarrer le compte à rebours pour redirection automatique
             autoRedirectTimer = setTimeout(() => {
               redirectToLogin();
-            }, 5000);
+            }, 15000);
           } else {
             // Annuler le compte à rebours si le modal est fermé
             if (autoRedirectTimer) {
