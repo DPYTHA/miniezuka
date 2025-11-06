@@ -1,5 +1,4 @@
-
-</html><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -81,6 +80,12 @@
     .btn:hover {
       background: #0056b3;
     }
+    .btn-success {
+      background: #28a745;
+    }
+    .btn-success:hover {
+      background: #218838;
+    }
     p {
       margin-top: 15px;
       font-size: 14px;
@@ -92,6 +97,46 @@
     }
     a:hover {
       text-decoration: underline;
+    }
+
+    /* Modal de succès */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(5px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      max-width: 350px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+    .modal-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+    .modal-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    .modal-message {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 25px;
+      line-height: 1.5;
     }
 
     /* Icône Telegram flottante - SVG */
@@ -151,12 +196,28 @@
             height: 24px;
         }
     }
+
+    /* Loading spinner */
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #0c2137;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
   <h2>Créer un compte</h2>
 
-  <form method="POST" action="/register" class="form">
+  <form method="POST" class="form" id="registerForm">
     <input name="first_name" placeholder="Prénom" required>
     <input name="last_name" placeholder="Nom" required>
     <input name="phone" placeholder="Numéro (ex: +225...)" required>
@@ -180,18 +241,106 @@
 
     <input name="password" type="password" placeholder="Mot de passe" minlength="6" required>
     
-    <button type="submit" class="btn">S'inscrire</button>
+    <button type="submit" class="btn" id="submitBtn">S'inscrire</button>
   </form>
 
   <p>Déjà membre ? 
     <a href="/login">Se connecter</a>
   </p>
 
- <!-- Alternative SVG Telegram -->
-<a href="https://t.me/EzukaTransfBot" target="_blank" class="telegram-float">
+  <!-- Modal de succès -->
+  <div class="modal" id="successModal">
+    <div class="modal-content">
+      <div class="modal-icon">✅</div>
+      <div class="modal-title">Inscription réussie !</div>
+      <div class="modal-message">
+        Votre compte a été créé avec succès.<br>
+        Vous pouvez maintenant vous connecter.
+        <i>NB: Si vous oubliez votre Mots de Passe ou PIN ,Vous pourrez reccuperer via whatssap 
+          au +7 9879040719
+        </i>
+      </div>
+      <button class="btn btn-success" onclick="redirectToLogin()">OK</button>
+    </div>
+  </div>
+
+  <!-- Alternative SVG Telegram -->
+  <a href="https://t.me/EzukaTransfBot" target="_blank" class="telegram-float">
     <svg class="telegram-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.78 5.42-.92 6.8-.06.67-.36.89-.84.56-2.33-1.72-3.98-2.79-6.45-4.47-.29-.23-.5-.35-.48-.54.03-.19.27-.2.5-.29.85-.32 2.86-.98 3.76-1.27.96-.31 1.25.16 1.27 1.07.02.65.14 2.06.23 3.1.04.52.15.7.35.73.25.04.49-.16.97-.62 1.37-1.25 2.3-2.5 3.44-4.09.19-.27.35-.31.58-.28.23.03.66.31.38.93-.28.62-1.72 2.49-2.13 2.99-.39.49-.56.74.02 1.26.41.37 2.91 2.67 3.37 3.14.52.53.9.77 1.32.79.35.02.8-.16 1.05-.59.26-.43.26-.8.18-.92-.07-.12-.26-.2-.55-.35-1.47-.74-3.05-1.52-3.81-1.88-.89-.42-.64-.65.45-1.99.78-.95 1.85-2.36 1.85-2.36s.42-.63.76-.61c.18.01.57.13.57.13s1.61.69 2.79 1.34c.33.18.56.17.65.16.22-.03.43-.17.48-.26.05-.09.05-.2.03-.28-.02-.08-.23-.57-.89-1.3-.75-.79-1.7-1.32-2.04-1.5-.54-.28-.93-.23-1.29-.14-.73.18-2.17.63-3.43 1.01-1.26.38-2.32.57-2.55.6-.52.07-.89-.11-.9-.34-.01-.24.33-.5.91-.76z"/>
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.78 5.42-.92 6.8-.06.67-.36.89-.84.56-2.33-1.72-3.98-2.79-6.45-4.47-.29-.23-.5-.35-.48-.54.03-.19.27-.2.5-.29.85-.32 2.86-.98 3.76-1.27.96-.31 1.25.16 1.27 1.07.02.65.14 2.06.23 3.1.04.52.15.7.35.73.25.04.49-.16.97-.62 1.37-1.25 2.3-2.5 3.44-4.09.19-.27.35-.31.58-.28.23.03.66.31.38.93-.28.62-1.72 2.49-2.13 2.99-.39.49-.56.74.02 1.26.41.37 2.91 2.67 3.37 3.14.52.53.9.77 1.32.79.35.02.8-.16 1.05-.59.26-.43.26-.8.18-.92-.07-.12-.26-.2-.55-.35-1.47-.74-3.05-1.52-3.81-1.88-.89-.42-.64-.65.45-1.99.78-.95 1.85-2.36 1.85-2.36s.42-.63.76-.61c.18.01.57.13.57.13s1.61.69 2.79 1.34c.33.18.56.17.65.16.22-.03.43-.17.48-.26.05-.09.05-.2.03-.28-.02-.08-.23-.57-.89-1.3-.75-.79-1.7-1.32-2.04-1.5-.54-.28-.93-.23-1.29-.14-.73.18-2.17.63-3.43 1.01-1.26.38-2.32.57-2.55.6-.52.07-.89-.11-.9-.34-.01-.24.33-.5.91-.76z"/>
     </svg>
-</a>
+  </a>
+
+  <script>
+    // Intercepter la soumission du formulaire
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const submitBtn = document.getElementById('submitBtn');
+      const originalText = submitBtn.textContent;
+      
+      // Désactiver le bouton et afficher le loading
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Inscription en cours...';
+      
+      try {
+        // Récupérer les données du formulaire
+        const formData = new FormData(this);
+        
+        // Envoyer la requête POST
+        const response = await fetch('/register', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+          // Afficher le modal de succès
+          document.getElementById('successModal').style.display = 'flex';
+        } else {
+          // Afficher l'erreur
+          alert('Erreur: ' + (data.error || 'Erreur lors de l\'inscription'));
+        }
+      } catch (error) {
+        console.error('Erreur:', error);
+        alert('Erreur de connexion lors de l\'inscription');
+      } finally {
+        // Réactiver le bouton
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    });
+
+    // Fonction pour rediriger vers la page de connexion
+    function redirectToLogin() {
+      window.location.href = '/login';
+    }
+
+    // Redirection automatique après 5 secondes (optionnel)
+    let autoRedirectTimer;
+    
+    // Démarrer la redirection automatique quand le modal s'affiche
+    const modal = document.getElementById('successModal');
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+          if (modal.style.display === 'flex') {
+            // Démarrer le compte à rebours pour redirection automatique
+            autoRedirectTimer = setTimeout(() => {
+              redirectToLogin();
+            }, 5000);
+          } else {
+            // Annuler le compte à rebours si le modal est fermé
+            if (autoRedirectTimer) {
+              clearTimeout(autoRedirectTimer);
+            }
+          }
+        }
+      });
+    });
+    
+    observer.observe(modal, { attributes: true });
+  </script>
 </body>
 </html>
