@@ -99,6 +99,25 @@
       text-decoration: underline;
     }
 
+    /* Style pour les messages d'erreur */
+    .error-message {
+      color: #dc3545;
+      font-size: 14px;
+      margin-top: -8px;
+      margin-bottom: 5px;
+      display: none;
+    }
+
+    /* Style pour les champs invalides */
+    .invalid {
+      border-color: #dc3545 !important;
+    }
+
+    /* Style pour les champs valides */
+    .valid {
+      border-color: #28a745 !important;
+    }
+
     /* Modal de succès */
     .modal {
       display: none;
@@ -220,9 +239,13 @@
   <form method="POST" class="form" id="registerForm">
     <input name="first_name" placeholder="Prénom" required>
     <input name="last_name" placeholder="Nom" required>
-    <input name="phone" placeholder="Numéro (ex: +225...)" required>
+    
+    <div>
+      <input name="phone" id="phone" placeholder="Num(+225 07-00-00-00-00)" required>
+      <div id="phoneError" class="error-message"></div>
+    </div>
 
-    <select name="country" required>
+    <select name="country" id="country" required>
       <option value="">-- Sélectionnez votre pays --</option>
       <option value="Côte d'Ivoire">Côte d'Ivoire</option>
       <option value="Mali">Mali</option>
@@ -257,7 +280,7 @@
         Votre compte a été créé avec succès.<br>
         Vous pouvez maintenant vous connecter.
         <i>NB: Si vous oubliez votre Mots de Passe ou PIN ,Vous pourrez reccuperer via whatssap 
-          au +7 9879040719.
+          au +7 9879040719
         </i>
       </div>
       <button class="btn btn-success" onclick="redirectToLogin()">OK</button>
@@ -272,11 +295,176 @@
   </a>
 
   <script>
+    // Définition des formats de numéros par pays
+    const phoneFormats = {
+      "Côte d'Ivoire": {
+        prefix: "+225",
+        pattern: /^\+225\s(0[1-9]-\d{2}-\d{2}-\d{2}-\d{2}|[1-9]\d-\d{2}-\d{2}-\d{2})$/,
+        example: "+225 07-57-12-36-19",
+        description: "Format: +225 suivi d'un espace puis 10 chiffres avec tirets (ex: 07-57-12-36-19)"
+      },
+      "Mali": {
+        prefix: "+223",
+        pattern: /^\+223\s\d{2}-\d{2}-\d{2}-\d{2}$/,
+        example: "+223 76-12-34-56",
+        description: "Format: +223 suivi d'un espace puis 8 chiffres avec tirets"
+      },
+      "Burkina Faso": {
+        prefix: "+226",
+        pattern: /^\+226\s\d{2}-\d{2}-\d{2}-\d{2}$/,
+        example: "+226 70-12-34-56",
+        description: "Format: +226 suivi d'un espace puis 8 chiffres avec tirets"
+      },
+      "Sénégal": {
+        prefix: "+221",
+        pattern: /^\+221\s\d{2}-\d{3}-\d{4}$/,
+        example: "+221 77-123-4567",
+        description: "Format: +221 suivi d'un espace puis 9 chiffres avec tirets"
+      },
+      "Ghana": {
+        prefix: "+233",
+        pattern: /^\+233\s\d{2}-\d{3}-\d{4}$/,
+        example: "+233 20-123-4567",
+        description: "Format: +233 suivi d'un espace puis 9 chiffres avec tirets"
+      },
+      "Togo": {
+        prefix: "+228",
+        pattern: /^\+228\s\d{2}-\d{2}-\d{2}-\d{2}$/,
+        example: "+228 90-12-34-56",
+        description: "Format: +228 suivi d'un espace puis 8 chiffres avec tirets"
+      },
+      "Bénin": {
+        prefix: "+229",
+        pattern: /^\+229\s\d{2}-\d{2}-\d{2}-\d{2}$/,
+        example: "+229 96-12-34-56",
+        description: "Format: +229 suivi d'un espace puis 8 chiffres avec tirets"
+      },
+      "Nigéria": {
+        prefix: "+234",
+        pattern: /^\+234\s\d{3}-\d{3}-\d{4}$/,
+        example: "+234 701-234-5678",
+        description: "Format: +234 suivi d'un espace puis 10 chiffres avec tirets"
+      },
+      "Russie": {
+        prefix: "+7",
+        pattern: /^\+7\s\d{3}-\d{3}-\d{2}-\d{2}$/,
+        example: "+7 912-345-67-89",
+        description: "Format: +7 suivi d'un espace puis 10 chiffres avec tirets"
+      },
+      "Guinee": {
+        prefix: "+224",
+        pattern: /^\+224\s\d{3}-\d{3}-\d{3}$/,
+        example: "+224 621-123-456",
+        description: "Format: +224 suivi d'un espace puis 9 chiffres avec tirets"
+      },
+      "Cameroun": {
+        prefix: "+237",
+        pattern: /^\+237\s\d{3}-\d{2}-\d{2}-\d{2}$/,
+        example: "+237 677-12-34-56",
+        description: "Format: +237 suivi d'un espace puis 9 chiffres avec tirets"
+      },
+      "Canada": {
+        prefix: "+1",
+        pattern: /^\+1\s\d{3}-\d{3}-\d{4}$/,
+        example: "+1 514-123-4567",
+        description: "Format: +1 suivi d'un espace puis 10 chiffres avec tirets"
+      },
+      "Gabon": {
+        prefix: "+241",
+        pattern: /^\+241\s\d{2}-\d{2}-\d{2}-\d{2}$/,
+        example: "+241 06-12-34-56",
+        description: "Format: +241 suivi d'un espace puis 8 chiffres avec tirets"
+      }
+    };
+
+    // Éléments du DOM
+    const phoneInput = document.getElementById('phone');
+    const countrySelect = document.getElementById('country');
+    const phoneError = document.getElementById('phoneError');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Mettre à jour le placeholder en fonction du pays sélectionné
+    countrySelect.addEventListener('change', function() {
+      const selectedCountry = this.value;
+      if (selectedCountry && phoneFormats[selectedCountry]) {
+        phoneInput.placeholder = `Numéro (ex: ${phoneFormats[selectedCountry].example})`;
+      } else {
+        phoneInput.placeholder = "Numéro (ex: +225 07-57-12-36-19)";
+      }
+      
+      // Valider le numéro si déjà saisi
+      if (phoneInput.value) {
+        validatePhoneNumber();
+      }
+    });
+
+    // Valider le numéro de téléphone en temps réel
+    phoneInput.addEventListener('input', validatePhoneNumber);
+
+    // Fonction de validation du numéro de téléphone
+    function validatePhoneNumber() {
+      const country = countrySelect.value;
+      const phoneNumber = phoneInput.value.trim();
+      
+      // Réinitialiser les styles et messages d'erreur
+      phoneInput.classList.remove('invalid', 'valid');
+      phoneError.style.display = 'none';
+      phoneError.textContent = '';
+      
+      // Si aucun pays n'est sélectionné
+      if (!country) {
+        phoneInput.classList.add('invalid');
+        phoneError.textContent = 'Veuillez d\'abord sélectionner votre pays';
+        phoneError.style.display = 'block';
+        return false;
+      }
+      
+      // Si le numéro est vide
+      if (!phoneNumber) {
+        return false;
+      }
+      
+      // Vérifier si le pays est dans notre liste
+      if (!phoneFormats[country]) {
+        phoneInput.classList.add('invalid');
+        phoneError.textContent = 'Format de numéro non défini pour ce pays';
+        phoneError.style.display = 'block';
+        return false;
+      }
+      
+      const format = phoneFormats[country];
+      
+      // Vérifier si le numéro commence par le bon préfixe
+      if (!phoneNumber.startsWith(format.prefix)) {
+        phoneInput.classList.add('invalid');
+        phoneError.textContent = `Le numéro doit commencer par ${format.prefix}`;
+        phoneError.style.display = 'block';
+        return false;
+      }
+      
+      // Vérifier le format avec l'expression régulière
+      if (!format.pattern.test(phoneNumber)) {
+        phoneInput.classList.add('invalid');
+        phoneError.textContent = format.description;
+        phoneError.style.display = 'block';
+        return false;
+      }
+      
+      // Si tout est valide
+      phoneInput.classList.add('valid');
+      return true;
+    }
+
     // Intercepter la soumission du formulaire
     document.getElementById('registerForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       
-      const submitBtn = document.getElementById('submitBtn');
+      // Valider le numéro avant soumission
+      if (!validatePhoneNumber()) {
+        alert('Veuillez corriger le format du numéro de téléphone avant de soumettre le formulaire.');
+        return;
+      }
+      
       const originalText = submitBtn.textContent;
       
       // Désactiver le bouton et afficher le loading
